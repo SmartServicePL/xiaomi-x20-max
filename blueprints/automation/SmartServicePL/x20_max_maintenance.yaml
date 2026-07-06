@@ -1,0 +1,166 @@
+blueprint:
+  name: X20 Max - maintenance notifications
+  description: >-
+    Sends a custom notification action when one X20 Max reports a persistent
+    station fault, becomes unavailable, or reaches a detergent/consumable
+    threshold. Create one automation from this blueprint for each robot.
+  domain: automation
+  homeassistant:
+    min_version: 2026.7.0
+  input:
+    robot_name:
+      name: Robot name
+      default: X20 Max
+      selector:
+        text:
+    vacuum:
+      name: Vacuum entity
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: vacuum
+    station_alert:
+      name: Station alerts sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    detergent:
+      name: Detergent level sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    mops:
+      name: Mop life sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    filter:
+      name: Filter life sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    main_brush:
+      name: Main brush life sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    side_brush:
+      name: Side brush life sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    dust_bag:
+      name: Dust bag life sensor
+      selector:
+        entity:
+          filter:
+            - integration: xiaomi_x20_max
+              domain: sensor
+    notification_actions:
+      name: Notification action
+      description: >-
+        Add a notification action. Templates may use x20_title and x20_message.
+      selector:
+        action:
+
+mode: queued
+max: 10
+
+triggers:
+  - trigger: state
+    entity_id: !input station_alert
+    to: Problem
+    for: "00:01:00"
+    id: station
+  - trigger: state
+    entity_id: !input vacuum
+    to: error
+    id: vacuum_error
+  - trigger: state
+    entity_id: !input vacuum
+    to: unavailable
+    for: "00:02:00"
+    id: unavailable
+  - trigger: numeric_state
+    entity_id: !input detergent
+    below: 15
+    id: detergent
+  - trigger: numeric_state
+    entity_id: !input mops
+    below: 20
+    id: mops
+  - trigger: numeric_state
+    entity_id: !input filter
+    below: 20
+    id: filter
+  - trigger: numeric_state
+    entity_id: !input main_brush
+    below: 20
+    id: main_brush
+  - trigger: numeric_state
+    entity_id: !input side_brush
+    below: 20
+    id: side_brush
+  - trigger: numeric_state
+    entity_id: !input dust_bag
+    below: 20
+    id: dust_bag
+
+variables:
+  configured_robot_name: !input robot_name
+
+actions:
+  - variables:
+      item: >-
+        {% set names = {
+          'detergent': 'detergent',
+          'mops': 'mops',
+          'filter': 'filter',
+          'main_brush': 'main brush',
+          'side_brush': 'side brush',
+          'dust_bag': 'dust bag'
+        } %}
+        {{ names.get(trigger.id, 'robot') }}
+      remaining_hours: >-
+        {{ trigger.to_state.attributes.get('remaining_hours')
+           if trigger.to_state is not none else none }}
+      detail: >-
+        {% if trigger.id == 'station' %}
+          {{ trigger.to_state.attributes.get('problem')
+             or 'The station reported a problem.' }}
+        {% elif trigger.id == 'vacuum_error' %}
+          The robot entered the error state.
+        {% elif trigger.id == 'unavailable' %}
+          The robot has been unavailable for at least 2 minutes.
+        {% else %}
+          Remaining {{ item }}: {{ trigger.to_state.state }}%
+          {% if remaining_hours is not none %}
+            (approximately {{ remaining_hours }} operating hours)
+          {% endif %}
+        {% endif %}
+      x20_title: "X20 Max: {{ configured_robot_name }}"
+      x20_message: >-
+        {{ detail | trim }}
+        {% if trigger.id in [
+          'mops', 'filter', 'main_brush', 'side_brush', 'dust_bag'
+        ] %}
+          Clean or replace the item and reset its counter afterwards.
+        {% endif %}
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ true }}"
+        sequence: !input notification_actions

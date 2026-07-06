@@ -1,0 +1,306 @@
+{
+  "title": "Xiaomi Robot Vacuum X20 Max",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wybierz X20 Max",
+        "description": "Wybierz X20 Max z konta Xiaomi uwierzytelnionego wcześniej w oficjalnej integracji Xiaomi Home.",
+        "data": {
+          "did": "X20 Max"
+        }
+      }
+    },
+    "error": {
+      "invalid_device": "Wybrane urządzenie nie jest robotem Xiaomi Robot Vacuum X20 Max."
+    },
+    "abort": {
+      "already_configured": "Ten robot jest już skonfigurowany.",
+      "no_devices": "Na tym koncie nie znaleziono Xiaomi Robot Vacuum X20 Max.",
+      "no_auth": "Nie znaleziono grantu OAuth Xiaomi. Najpierw skonfiguruj oficjalną integrację Xiaomi Home dla tego samego konta i regionu, a następnie spróbuj ponownie."
+    }
+  },
+  "entity": {
+    "vacuum": {
+      "vacuum": { "name": "Sterowanie" }
+    },
+    "sensor": {
+      "battery": { "name": "Bateria" },
+      "cleaning_area": { "name": "Aktualnie posprzątana powierzchnia" },
+      "cleaning_time": { "name": "Czas bieżącego sprzątania" },
+      "last_clean": { "name": "Ostatnie sprzątanie" },
+      "total_cleaning_area": { "name": "Łącznie posprzątana powierzchnia" },
+      "total_cleaning_time": { "name": "Łączny czas sprzątania" },
+      "total_cleaning_count": { "name": "Łączna liczba sprzątań" },
+      "mop_life": { "name": "Zużycie mopów" },
+      "main_brush_life": { "name": "Zużycie szczotki głównej" },
+      "side_brush_life": { "name": "Zużycie szczotki bocznej" },
+      "filter_life": { "name": "Zużycie filtra" },
+      "detergent_level": { "name": "Poziom detergentu" },
+      "dust_bag_life": { "name": "Zużycie worka na kurz" },
+      "faults": { "name": "Błędy" },
+      "rooms": { "name": "Pomieszczenia i ID" },
+      "station_alerts": { "name": "Alarmy stacji" }
+    },
+    "number": {
+      "volume": { "name": "Głośność komunikatów" },
+      "mop_wash_interval": { "name": "Odstęp czasowy mycia mopów" }
+    },
+    "select": {
+      "cleaning_mode": {
+        "name": "Tryb sprzątania",
+        "state": {
+          "vacuum": "Odkurzanie",
+          "mop": "Mopowanie",
+          "vacuum_and_mop": "Odkurzanie i mopowanie",
+          "vacuum_then_mop": "Najpierw odkurzanie, potem mopowanie"
+        }
+      },
+      "cleaning_passes": {
+        "name": "Liczba przejazdów",
+        "state": { "one": "Jeden", "two": "Dwa", "three": "Trzy" }
+      },
+      "suction_power": {
+        "name": "Moc ssania",
+        "state": {
+          "silent": "Cicha",
+          "standard": "Standardowa",
+          "strong": "Mocna",
+          "turbo": "Turbo"
+        }
+      },
+      "mop_water_level": {
+        "name": "Ilość wody do mopowania",
+        "state": {
+          "off": "Wyłączona",
+          "low": "Mała",
+          "medium": "Średnia",
+          "high": "Duża"
+        }
+      },
+      "mop_wash_frequency": {
+        "name": "Wyzwalanie mycia mopów",
+        "state": {
+          "by_room": "Po pomieszczeniu",
+          "by_area": "Według powierzchni",
+          "by_time": "Według czasu"
+        }
+      },
+      "mop_wash_intensity": {
+        "name": "Intensywność mycia mopów",
+        "state": {
+          "deep": "Dokładna",
+          "daily": "Codzienna",
+          "water_saving": "Oszczędzanie wody"
+        }
+      },
+      "drying_time": {
+        "name": "Czas suszenia mopów",
+        "state": {
+          "two_hours": "2 godziny",
+          "three_hours": "3 godziny",
+          "four_hours": "4 godziny"
+        }
+      },
+      "dust_collection_frequency": {
+        "name": "Częstotliwość opróżniania pojemnika",
+        "state": {
+          "once": "Jeden raz",
+          "twice": "Dwa razy",
+          "three_times": "Trzy razy"
+        }
+      },
+      "mop_water_no_tank": {
+        "name": "Tryb wody do mopowania",
+        "state": { "daily": "Codzienny", "deep": "Dokładny" }
+      },
+      "mop_wash_area": {
+        "name": "Powierzchnia między myciem mopów",
+        "state": {
+          "five_m2": "5 m²",
+          "eight_m2": "8 m²",
+          "ten_m2": "10 m²",
+          "fifteen_m2": "15 m²",
+          "twenty_m2": "20 m²",
+          "twenty_five_m2": "25 m²"
+        }
+      },
+      "carpet_cleaning": {
+        "name": "Sprzątanie dywanów",
+        "state": {
+          "adaptive": "Automatyczne",
+          "avoid": "Omijaj",
+          "ignore": "Ignoruj",
+          "cross": "Przejeżdżaj"
+        }
+      },
+      "cleaning_route": {
+        "name": "Trasa sprzątania",
+        "state": {
+          "quick": "Szybka",
+          "daily": "Codzienna",
+          "careful": "Dokładna"
+        }
+      },
+      "obstacle_avoidance": {
+        "name": "Omijanie przeszkód",
+        "state": {
+          "fewer_collisions": "Mniej kolizji",
+          "high_coverage": "Większe pokrycie"
+        }
+      },
+      "edge_mop_frequency": {
+        "name": "Częstotliwość mopowania krawędzi",
+        "state": {
+          "every_time": "Przy każdym sprzątaniu",
+          "every_seven_runs": "Co 7 sprzątań"
+        }
+      },
+      "dust_collection_power": {
+        "name": "Moc opróżniania pojemnika",
+        "state": {
+          "silent": "Cicha",
+          "normal": "Normalna",
+          "strong": "Mocna"
+        }
+      },
+      "worry_free_mode": {
+        "name": "Tryb inteligentnego sprzątania",
+        "state": {
+          "silent": "Cichy",
+          "deep": "Dokładny",
+          "standard": "Standardowy"
+        }
+      },
+      "mop_wash_temperature": {
+        "name": "Temperatura wody do mycia mopów",
+        "state": {
+          "ambient": "Temperatura otoczenia",
+          "warm": "Ciepła",
+          "hot": "Gorąca",
+          "smart": "Inteligentna"
+        }
+      },
+      "map_switching": {
+        "name": "Przełączanie map",
+        "state": { "manual": "Ręczne", "automatic": "Automatyczne" }
+      },
+      "detergent_amount": {
+        "name": "Ilość detergentu",
+        "state": {
+          "low": "Mała",
+          "standard": "Standardowa",
+          "high": "Duża",
+          "very_high": "Bardzo duża"
+        }
+      }
+    },
+    "switch": {
+      "carpet_boost": { "name": "Zwiększanie mocy na dywanie" },
+      "carpet_avoidance": { "name": "Omijanie dywanów" },
+      "show_carpets": { "name": "Pokazuj dywany na mapie" },
+      "resume_cleaning": { "name": "Wznawianie przerwanego sprzątania" },
+      "automatic_mop_wash": { "name": "Automatyczne mycie mopów" },
+      "automatic_dust_collection": { "name": "Automatyczne opróżnianie pojemnika" },
+      "automatic_mop_drying": { "name": "Automatyczne suszenie mopów" },
+      "automatic_water_change": { "name": "Automatyczna wymiana wody" },
+      "use_detergent": { "name": "Używaj detergentu" },
+      "remote_exit_dialog": { "name": "Potwierdzenie wyjścia ze sterowania ręcznego" },
+      "detergent_auto_dosing": { "name": "Automatyczne dozowanie detergentu" },
+      "detergent_low_reminder": { "name": "Przypomnienie o niskim poziomie detergentu" },
+      "carpet_deep_cleaning": { "name": "Dokładne sprzątanie dywanów" },
+      "carpet_detection": { "name": "Wykrywanie dywanów" },
+      "carpets_first": { "name": "Najpierw sprzątaj dywany" },
+      "edge_mopping": { "name": "Wysuwanie mopa przy krawędzi" },
+      "alarm": { "name": "Komunikaty głosowe" },
+      "child_lock": { "name": "Blokada rodzicielska" },
+      "stop_map_upload": { "name": "Zatrzymaj wysyłanie mapy" },
+      "do_not_disturb": { "name": "Nie przeszkadzać" },
+      "detergent_station_dosing": { "name": "Dozowanie detergentu przez stację" },
+      "sewage_self_cleaning": { "name": "Samooczyszczanie odpływu" }
+    },
+    "button": {
+      "start_vacuuming": { "name": "Rozpocznij odkurzanie" },
+      "start_mopping": { "name": "Rozpocznij mopowanie" },
+      "start_vacuum_and_mop": { "name": "Rozpocznij odkurzanie i mopowanie" },
+      "resume": { "name": "Wznów sprzątanie" },
+      "start_mapping": { "name": "Rozpocznij szybkie mapowanie" },
+      "empty_dust_bin": { "name": "Opróżnij pojemnik na kurz" },
+      "wash_mops": { "name": "Umyj mopy" },
+      "dry_mops": { "name": "Wysusz mopy" },
+      "leave_station": { "name": "Wyjedź ze stacji" },
+      "stop_mop_wash": { "name": "Zatrzymaj mycie mopów" },
+      "stop_mop_drying": { "name": "Zatrzymaj suszenie mopów" },
+      "resume_mapping": { "name": "Wznów mapowanie" },
+      "finish_mapping": { "name": "Zakończ mapowanie i wróć" },
+      "pause_mapping": { "name": "Wstrzymaj mapowanie" },
+      "return_to_wash_mops": { "name": "Wróć umyć mopy" },
+      "start_water_check": { "name": "Uruchom kontrolę instalacji wodnej" },
+      "cancel_water_check": { "name": "Anuluj kontrolę instalacji wodnej" },
+      "start_charging": { "name": "Rozpocznij ładowanie" },
+      "identify": { "name": "Znajdź robota" },
+      "reset_mop": { "name": "Wyzeruj zużycie mopów" },
+      "clear_map": { "name": "Usuń mapę" },
+      "save_map": { "name": "Zapisz mapę" },
+      "automatic_room_partition": { "name": "Automatycznie podziel pomieszczenia" },
+      "refresh_map_properties": { "name": "Odśwież dane mapy" },
+      "reset_main_brush": { "name": "Wyzeruj zużycie szczotki głównej" },
+      "reset_side_brush": { "name": "Wyzeruj zużycie szczotki bocznej" },
+      "reset_filter": { "name": "Wyzeruj zużycie filtra" },
+      "reset_detergent": { "name": "Wyzeruj poziom detergentu" },
+      "reset_dust_bag": { "name": "Wyzeruj zużycie worka" }
+    }
+  },
+  "services": {
+    "clean_rooms": {
+      "name": "Posprzątaj pomieszczenia",
+      "description": "Posprzątaj pomieszczenia wskazane numerem X20 Max albo dokładną nazwą.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Docelowa encja X20 Max." },
+        "rooms": { "name": "Pomieszczenia", "description": "Lista identyfikatorów lub dokładnych nazw pomieszczeń." },
+        "mode": { "name": "Tryb", "description": "Opcjonalny tryb sprzątania." },
+        "suction": { "name": "Moc ssania", "description": "Opcjonalna moc ssania." },
+        "water_level": { "name": "Ilość wody", "description": "Opcjonalna ilość wody do mopowania." },
+        "passes": { "name": "Przejazdy", "description": "Sprzątaj każde pomieszczenie od 1 do 3 razy." },
+        "route": { "name": "Trasa", "description": "Opcjonalny rodzaj trasy sprzątania." }
+      }
+    },
+    "station_action": {
+      "name": "Uruchom funkcję stacji",
+      "description": "Uruchamia wybraną funkcję stacji Omni.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Docelowa encja X20 Max." },
+        "action": { "name": "Funkcja", "description": "Funkcja stacji do uruchomienia." }
+      }
+    },
+    "set_dnd": {
+      "name": "Ustaw harmonogram „Nie przeszkadzać”",
+      "description": "Ustawia przedział ciszy X20 Max.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Docelowa encja X20 Max." },
+        "start": { "name": "Początek", "description": "Początek przedziału ciszy." },
+        "end": { "name": "Koniec", "description": "Koniec przedziału ciszy." },
+        "enabled": { "name": "Włączony", "description": "Włącza harmonogram." }
+      }
+    },
+    "set_property": {
+      "name": "Ustaw surową właściwość MIoT",
+      "description": "Zaawansowany dostęp do każdej zapisywalnej właściwości MIoT X20 Max.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Docelowa encja X20 Max." },
+        "siid": { "name": "Identyfikator usługi", "description": "Numer instancji usługi MIoT." },
+        "piid": { "name": "Identyfikator właściwości", "description": "Numer instancji właściwości MIoT." },
+        "value": { "name": "Wartość", "description": "Surowa wartość MIoT." }
+      }
+    },
+    "execute_action": {
+      "name": "Wykonaj surową akcję MIoT",
+      "description": "Zaawansowany dostęp do każdej akcji MIoT X20 Max.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Docelowa encja X20 Max." },
+        "siid": { "name": "Identyfikator usługi", "description": "Numer instancji usługi MIoT." },
+        "aiid": { "name": "Identyfikator akcji", "description": "Numer instancji akcji MIoT." },
+        "inputs": { "name": "Parametry", "description": "Lista obiektów piid/wartość." }
+      }
+    }
+  }
+}

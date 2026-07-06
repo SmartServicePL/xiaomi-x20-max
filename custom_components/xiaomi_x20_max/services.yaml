@@ -1,0 +1,152 @@
+clean_rooms:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_x20_max
+          domain: vacuum
+          multiple: true
+    rooms:
+      required: true
+      example: [5, 10]
+      selector:
+        object:
+    mode:
+      selector:
+        select:
+          options:
+            - vacuum
+            - mop
+            - vacuum_and_mop
+            - vacuum_then_mop
+    suction:
+      selector:
+        select:
+          options:
+            - silent
+            - standard
+            - strong
+            - turbo
+    water_level:
+      selector:
+        select:
+          options:
+            - "off"
+            - low
+            - medium
+            - high
+    passes:
+      selector:
+        number:
+          min: 1
+          max: 3
+          mode: box
+    route:
+      selector:
+        select:
+          options:
+            - quick
+            - daily
+            - careful
+
+station_action:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_x20_max
+          domain: vacuum
+          multiple: true
+    action:
+      required: true
+      selector:
+        select:
+          options:
+            - empty
+            - wash_mops
+            - dry_mops
+            - leave_station
+            - stop_washing
+            - stop_drying
+            - return_to_wash
+
+set_dnd:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_x20_max
+          domain: vacuum
+          multiple: true
+    start:
+      required: true
+      selector:
+        time:
+    end:
+      required: true
+      selector:
+        time:
+    enabled:
+      default: true
+      selector:
+        boolean:
+
+set_property:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_x20_max
+          multiple: true
+    siid:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 255
+          mode: box
+    piid:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 65535
+          mode: box
+    value:
+      required: true
+      selector:
+        object:
+
+execute_action:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_x20_max
+          multiple: true
+    siid:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 255
+          mode: box
+    aiid:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 65535
+          mode: box
+    inputs:
+      default: []
+      example:
+        - piid: 15
+          value: "[5,10]"
+      selector:
+        object:

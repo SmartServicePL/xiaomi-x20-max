@@ -1,0 +1,23 @@
+# Example only. Replace entity IDs and room names with values from your system.
+automation:
+  - alias: X20 Max - clean kitchen on weekdays
+    triggers:
+      - trigger: time
+        at: "10:00:00"
+    conditions:
+      - condition: time
+        weekday:
+          - mon
+          - wed
+          - fri
+    actions:
+      - action: xiaomi_x20_max.clean_rooms
+        data:
+          entity_id: vacuum.my_x20_max_control
+          rooms:
+            - Kitchen
+          mode: vacuum_and_mop
+          suction: turbo
+          water_level: medium
+          passes: 2
+          route: careful

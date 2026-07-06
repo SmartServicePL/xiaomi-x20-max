@@ -1,0 +1,299 @@
+{
+  "title": "Xiaomi Robot Vacuum X20 Max",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select an X20 Max",
+        "description": "Select an X20 Max from the Xiaomi account already authenticated by the official Xiaomi Home integration.",
+        "data": {
+          "did": "X20 Max"
+        }
+      }
+    },
+    "error": {
+      "invalid_device": "The selected device is not a Xiaomi Robot Vacuum X20 Max."
+    },
+    "abort": {
+      "already_configured": "This robot is already configured.",
+      "no_devices": "No Xiaomi Robot Vacuum X20 Max was found on this account.",
+      "no_auth": "No Xiaomi OAuth grant was found. Configure the official Xiaomi Home integration with the same account and region first, then try again."
+    }
+  },
+  "entity": {
+    "vacuum": {
+      "vacuum": {
+        "name": "Control"
+      }
+    },
+    "sensor": {
+      "battery": { "name": "Battery" },
+      "cleaning_area": { "name": "Current cleaning area" },
+      "cleaning_time": { "name": "Current cleaning time" },
+      "last_clean": { "name": "Last cleaning" },
+      "total_cleaning_area": { "name": "Total cleaning area" },
+      "total_cleaning_time": { "name": "Total cleaning time" },
+      "total_cleaning_count": { "name": "Total cleaning runs" },
+      "mop_life": { "name": "Mop life" },
+      "main_brush_life": { "name": "Main brush life" },
+      "side_brush_life": { "name": "Side brush life" },
+      "filter_life": { "name": "Filter life" },
+      "detergent_level": { "name": "Detergent level" },
+      "dust_bag_life": { "name": "Dust bag life" },
+      "faults": { "name": "Faults" },
+      "rooms": { "name": "Rooms and IDs" },
+      "station_alerts": { "name": "Station alerts" }
+    },
+    "number": {
+      "volume": { "name": "Voice volume" },
+      "mop_wash_interval": { "name": "Mop wash interval" }
+    },
+    "select": {
+      "cleaning_mode": {
+        "name": "Cleaning mode",
+        "state": {
+          "vacuum": "Vacuum",
+          "mop": "Mop",
+          "vacuum_and_mop": "Vacuum and mop",
+          "vacuum_then_mop": "Vacuum, then mop"
+        }
+      },
+      "cleaning_passes": {
+        "name": "Cleaning passes",
+        "state": { "one": "Once", "two": "Twice", "three": "Three times" }
+      },
+      "suction_power": {
+        "name": "Suction power",
+        "state": {
+          "silent": "Silent",
+          "standard": "Standard",
+          "strong": "Strong",
+          "turbo": "Turbo"
+        }
+      },
+      "mop_water_level": {
+        "name": "Mop water level",
+        "state": { "off": "Off", "low": "Low", "medium": "Medium", "high": "High" }
+      },
+      "mop_wash_frequency": {
+        "name": "Mop wash trigger",
+        "state": {
+          "by_room": "By room",
+          "by_area": "By area",
+          "by_time": "By time"
+        }
+      },
+      "mop_wash_intensity": {
+        "name": "Mop wash intensity",
+        "state": {
+          "deep": "Deep",
+          "daily": "Daily",
+          "water_saving": "Water saving"
+        }
+      },
+      "drying_time": {
+        "name": "Mop drying time",
+        "state": {
+          "two_hours": "2 hours",
+          "three_hours": "3 hours",
+          "four_hours": "4 hours"
+        }
+      },
+      "dust_collection_frequency": {
+        "name": "Dust collection frequency",
+        "state": {
+          "once": "Once",
+          "twice": "Twice",
+          "three_times": "Three times"
+        }
+      },
+      "mop_water_no_tank": {
+        "name": "Mop water mode",
+        "state": { "daily": "Daily", "deep": "Deep" }
+      },
+      "mop_wash_area": {
+        "name": "Area between mop washes",
+        "state": {
+          "five_m2": "5 m²",
+          "eight_m2": "8 m²",
+          "ten_m2": "10 m²",
+          "fifteen_m2": "15 m²",
+          "twenty_m2": "20 m²",
+          "twenty_five_m2": "25 m²"
+        }
+      },
+      "carpet_cleaning": {
+        "name": "Carpet cleaning",
+        "state": {
+          "adaptive": "Adaptive",
+          "avoid": "Avoid",
+          "ignore": "Ignore",
+          "cross": "Cross"
+        }
+      },
+      "cleaning_route": {
+        "name": "Cleaning route",
+        "state": { "quick": "Quick", "daily": "Daily", "careful": "Careful" }
+      },
+      "obstacle_avoidance": {
+        "name": "Obstacle avoidance",
+        "state": {
+          "fewer_collisions": "Fewer collisions",
+          "high_coverage": "Higher coverage"
+        }
+      },
+      "edge_mop_frequency": {
+        "name": "Edge mopping frequency",
+        "state": {
+          "every_time": "Every cleaning",
+          "every_seven_runs": "Every 7 cleanings"
+        }
+      },
+      "dust_collection_power": {
+        "name": "Dust collection power",
+        "state": {
+          "silent": "Silent",
+          "normal": "Normal",
+          "strong": "Strong"
+        }
+      },
+      "worry_free_mode": {
+        "name": "Worry-free cleaning",
+        "state": {
+          "silent": "Silent",
+          "deep": "Deep clean",
+          "standard": "Standard"
+        }
+      },
+      "mop_wash_temperature": {
+        "name": "Mop wash water temperature",
+        "state": {
+          "ambient": "Ambient",
+          "warm": "Warm",
+          "hot": "Hot",
+          "smart": "Smart"
+        }
+      },
+      "map_switching": {
+        "name": "Map switching",
+        "state": { "manual": "Manual", "automatic": "Automatic" }
+      },
+      "detergent_amount": {
+        "name": "Detergent amount",
+        "state": {
+          "low": "Low",
+          "standard": "Standard",
+          "high": "High",
+          "very_high": "Very high"
+        }
+      }
+    },
+    "switch": {
+      "carpet_boost": { "name": "Carpet boost" },
+      "carpet_avoidance": { "name": "Avoid carpets" },
+      "show_carpets": { "name": "Show carpets on map" },
+      "resume_cleaning": { "name": "Resume interrupted cleaning" },
+      "automatic_mop_wash": { "name": "Automatic mop washing" },
+      "automatic_dust_collection": { "name": "Automatic dust collection" },
+      "automatic_mop_drying": { "name": "Automatic mop drying" },
+      "automatic_water_change": { "name": "Automatic water change" },
+      "use_detergent": { "name": "Use detergent" },
+      "remote_exit_dialog": { "name": "Remote control exit dialog" },
+      "detergent_auto_dosing": { "name": "Automatic detergent dosing" },
+      "detergent_low_reminder": { "name": "Low detergent reminder" },
+      "carpet_deep_cleaning": { "name": "Deep carpet cleaning" },
+      "carpet_detection": { "name": "Carpet detection" },
+      "carpets_first": { "name": "Clean carpets first" },
+      "edge_mopping": { "name": "Extend mop at edges" },
+      "alarm": { "name": "Voice prompts" },
+      "child_lock": { "name": "Child lock" },
+      "stop_map_upload": { "name": "Stop map upload" },
+      "do_not_disturb": { "name": "Do not disturb" },
+      "detergent_station_dosing": { "name": "Station detergent dosing" },
+      "sewage_self_cleaning": { "name": "Sewage system self-cleaning" }
+    },
+    "button": {
+      "start_vacuuming": { "name": "Start vacuuming" },
+      "start_mopping": { "name": "Start mopping" },
+      "start_vacuum_and_mop": { "name": "Start vacuuming and mopping" },
+      "resume": { "name": "Resume cleaning" },
+      "start_mapping": { "name": "Start quick mapping" },
+      "empty_dust_bin": { "name": "Empty dust bin" },
+      "wash_mops": { "name": "Wash mops" },
+      "dry_mops": { "name": "Dry mops" },
+      "leave_station": { "name": "Leave station" },
+      "stop_mop_wash": { "name": "Stop mop washing" },
+      "stop_mop_drying": { "name": "Stop mop drying" },
+      "resume_mapping": { "name": "Resume mapping" },
+      "finish_mapping": { "name": "Finish mapping and dock" },
+      "pause_mapping": { "name": "Pause mapping" },
+      "return_to_wash_mops": { "name": "Return to wash mops" },
+      "start_water_check": { "name": "Start water system check" },
+      "cancel_water_check": { "name": "Cancel water system check" },
+      "start_charging": { "name": "Start charging" },
+      "identify": { "name": "Locate robot" },
+      "reset_mop": { "name": "Reset mop life" },
+      "clear_map": { "name": "Clear map" },
+      "save_map": { "name": "Save map" },
+      "automatic_room_partition": { "name": "Partition rooms automatically" },
+      "refresh_map_properties": { "name": "Refresh map properties" },
+      "reset_main_brush": { "name": "Reset main brush life" },
+      "reset_side_brush": { "name": "Reset side brush life" },
+      "reset_filter": { "name": "Reset filter life" },
+      "reset_detergent": { "name": "Reset detergent level" },
+      "reset_dust_bag": { "name": "Reset dust bag life" }
+    }
+  },
+  "services": {
+    "clean_rooms": {
+      "name": "Clean rooms",
+      "description": "Clean rooms by X20 Max room ID or exact room name.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Target X20 Max entity." },
+        "rooms": { "name": "Rooms", "description": "List of room IDs or exact room names." },
+        "mode": { "name": "Mode", "description": "Optional cleaning mode." },
+        "suction": { "name": "Suction", "description": "Optional suction level." },
+        "water_level": { "name": "Water level", "description": "Optional mop water level." },
+        "passes": { "name": "Passes", "description": "Clean each room 1–3 times." },
+        "route": { "name": "Route", "description": "Optional cleaning route." }
+      }
+    },
+    "station_action": {
+      "name": "Run station action",
+      "description": "Run an Omni station operation.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Target X20 Max entity." },
+        "action": { "name": "Action", "description": "Station operation to run." }
+      }
+    },
+    "set_dnd": {
+      "name": "Set do-not-disturb schedule",
+      "description": "Set the X20 Max quiet interval.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Target X20 Max entity." },
+        "start": { "name": "Start", "description": "Quiet interval start." },
+        "end": { "name": "End", "description": "Quiet interval end." },
+        "enabled": { "name": "Enabled", "description": "Enable the schedule." }
+      }
+    },
+    "set_property": {
+      "name": "Set raw MIoT property",
+      "description": "Advanced access to every writable X20 Max MIoT property.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Target X20 Max entity." },
+        "siid": { "name": "Service ID", "description": "MIoT service instance ID." },
+        "piid": { "name": "Property ID", "description": "MIoT property instance ID." },
+        "value": { "name": "Value", "description": "Raw MIoT value." }
+      }
+    },
+    "execute_action": {
+      "name": "Execute raw MIoT action",
+      "description": "Advanced access to every X20 Max MIoT action.",
+      "fields": {
+        "entity_id": { "name": "Robot", "description": "Target X20 Max entity." },
+        "siid": { "name": "Service ID", "description": "MIoT service instance ID." },
+        "aiid": { "name": "Action ID", "description": "MIoT action instance ID." },
+        "inputs": { "name": "Inputs", "description": "List of piid/value input objects." }
+      }
+    }
+  }
+}
