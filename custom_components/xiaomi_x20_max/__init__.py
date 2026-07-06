@@ -48,6 +48,7 @@ SERVICE_EXECUTE_ACTION = "execute_action"
 
 ENTITY_IDS_SCHEMA = vol.All(cv.ensure_list, [cv.entity_id])
 RAW_VALUE_SCHEMA = vol.Any(bool, int, float, str, list, dict)
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
