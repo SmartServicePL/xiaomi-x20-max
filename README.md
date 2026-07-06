@@ -1,5 +1,10 @@
 # Xiaomi Robot Vacuum X20 Max for Home Assistant
 
+<p align="center">
+  <img src="custom_components/xiaomi_x20_max/brand/icon@2x.png"
+       alt="X20 Max integration logo" width="180">
+</p>
+
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
 [![Validate](https://github.com/SmartServicePL/xiaomi-x20-max/actions/workflows/validate.yml/badge.svg)](https://github.com/SmartServicePL/xiaomi-x20-max/actions/workflows/validate.yml)
 

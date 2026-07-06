@@ -1,5 +1,10 @@
 # Xiaomi Robot Vacuum X20 Max dla Home Assistant
 
+<p align="center">
+  <img src="custom_components/xiaomi_x20_max/brand/icon@2x.png"
+       alt="Logo integracji X20 Max" width="180">
+</p>
+
 Nieoficjalna integracja przeznaczona wyłącznie dla modelu
 `xiaomi.vacuum.d109gl`.
 
