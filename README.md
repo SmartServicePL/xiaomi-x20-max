@@ -13,6 +13,14 @@ Unofficial, model-specific Home Assistant integration for
 
 [Polska instrukcja](README_PL.md)
 
+Integration prepared by **Smart Service**.
+
+## Support
+
+If this integration helps you, you can support Smart Service:
+
+[Donate via Revolut](https://revolut.me/smartserwis)
+
 ## Features
 
 - Native vacuum entity: start, pause, stop, locate and return to base.

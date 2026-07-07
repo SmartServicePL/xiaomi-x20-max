@@ -8,6 +8,14 @@
 Nieoficjalna integracja przeznaczona wyłącznie dla modelu
 `xiaomi.vacuum.d109gl`.
 
+Integracja przygotowana przez **Smart Service**.
+
+## Wsparcie
+
+Jeśli ta integracja Ci pomaga, możesz wesprzeć Smart Service:
+
+[Donate via Revolut](https://revolut.me/smartserwis)
+
 ## Funkcje
 
 - pełne sterowanie odkurzaczem i stacją Omni;
