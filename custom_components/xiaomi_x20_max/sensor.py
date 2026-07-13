@@ -29,6 +29,15 @@ from .controller import X20MaxController
 from .entity import X20MaxEntity
 
 
+FAULT_DESCRIPTIONS_EN: dict[int, str] = {
+    210030: "Clean water tank level is low",
+}
+
+FAULT_DESCRIPTIONS_PL: dict[int, str] = {
+    210030: "Poziom wody w zbiorniku na czystą wodę jest niski",
+}
+
+
 @dataclass(frozen=True, kw_only=True)
 class X20MaxSensorDescription(SensorEntityDescription):
     """Describe an X20 Max sensor."""
@@ -220,13 +229,24 @@ class X20MaxSensor(X20MaxEntity, SensorEntity):
                 faults = json.loads(raw).get("fault", [])
             except (TypeError, ValueError, AttributeError):
                 return raw
-            active = [str(value) for value in faults if int(value) != 0]
+            active = [
+                self._format_fault(int(value)) for value in faults if int(value) != 0
+            ]
             return ", ".join(active) if active else "OK"
         try:
             value = float(raw) * description.scale
         except (TypeError, ValueError):
             return None
         return int(value) if value.is_integer() else round(value, 2)
+
+    def _format_fault(self, code: int) -> str:
+        descriptions = (
+            FAULT_DESCRIPTIONS_PL
+            if getattr(self.hass.config, "language", "en").startswith("pl")
+            else FAULT_DESCRIPTIONS_EN
+        )
+        description = descriptions.get(code)
+        return f"{code}: {description}" if description else str(code)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
@@ -291,9 +311,7 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
             faults = fault_data.get("fault", []) if isinstance(fault_data, dict) else []
             active_faults = [int(value) for value in faults if int(value) != 0]
             if active_faults:
-                alerts.append(
-                    "Fault codes: " + ", ".join(str(value) for value in active_faults)
-                )
+                alerts.append(self._format_faults(active_faults))
         except (TypeError, ValueError, AttributeError):
             if raw_faults:
                 alerts.append(f"Fault: {raw_faults}")
@@ -313,6 +331,25 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
             if value and value not in ("{}", "[]", "0"):
                 alerts.append(f"{label.capitalize()}: {value}")
         return alerts
+
+    def _format_faults(self, faults: list[int]) -> str:
+        descriptions = (
+            FAULT_DESCRIPTIONS_PL
+            if getattr(self.hass.config, "language", "en").startswith("pl")
+            else FAULT_DESCRIPTIONS_EN
+        )
+        prefix = (
+            "Kody usterek" if descriptions is FAULT_DESCRIPTIONS_PL else "Fault codes"
+        )
+        values = [
+            (
+                f"{code}: {description}"
+                if (description := descriptions.get(code))
+                else str(code)
+            )
+            for code in faults
+        ]
+        return f"{prefix}: " + ", ".join(values)
 
     @property
     def native_value(self) -> str:

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a readable message for fault code `210030`: low clean-water tank level.
+
 ## 1.0.0
 
 - Initial public release for `xiaomi.vacuum.d109gl`.
