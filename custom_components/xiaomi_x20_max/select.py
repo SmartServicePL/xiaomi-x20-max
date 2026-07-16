@@ -28,7 +28,9 @@ async def async_setup_entry(
 class X20MaxSelect(X20MaxEntity, SelectEntity):
     """Proxy a writable MIoT enum with stable, translated options."""
 
-    def __init__(self, controller: X20MaxController, description: EnumProperty) -> None:
+    def __init__(
+        self, controller: X20MaxController, description: EnumProperty
+    ) -> None:
         super().__init__(controller, f"select_{description.key}")
         self.description = description
         self._attr_translation_key = description.key

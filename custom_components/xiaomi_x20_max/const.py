@@ -311,9 +311,7 @@ BOOL_PROPERTIES: tuple[BoolProperty, ...] = (
     BoolProperty("use_detergent", PropertyRef(2, 36), "mdi:bottle-tonic-plus"),
     BoolProperty("remote_exit_dialog", PropertyRef(2, 38), "mdi:remote", True),
     BoolProperty("detergent_auto_dosing", PropertyRef(2, 59), "mdi:eyedropper"),
-    BoolProperty(
-        "detergent_low_reminder", PropertyRef(2, 71), "mdi:bottle-tonic-alert"
-    ),
+    BoolProperty("detergent_low_reminder", PropertyRef(2, 71), "mdi:bottle-tonic-alert"),
     BoolProperty("carpet_deep_cleaning", PropertyRef(2, 76), "mdi:rug"),
     BoolProperty("carpet_detection", PropertyRef(2, 77), "mdi:radar"),
     BoolProperty("carpets_first", PropertyRef(2, 78), "mdi:order-bool-ascending"),
@@ -322,9 +320,7 @@ BOOL_PROPERTIES: tuple[BoolProperty, ...] = (
     BoolProperty("child_lock", PropertyRef(5, 1), "mdi:lock"),
     BoolProperty("stop_map_upload", PropertyRef(10, 11), "mdi:cloud-off-outline", True),
     BoolProperty("do_not_disturb", PropertyRef(11, 1), "mdi:minus-circle"),
-    BoolProperty(
-        "detergent_station_dosing", PropertyRef(18, 2), "mdi:eyedropper", True
-    ),
+    BoolProperty("detergent_station_dosing", PropertyRef(18, 2), "mdi:eyedropper", True),
     BoolProperty("sewage_self_cleaning", PropertyRef(20, 7), "mdi:pipe-valve", True),
 )
 
@@ -456,7 +452,12 @@ POLL_PROPERTIES: tuple[PropertyRef, ...] = tuple(
         (5, 1),
         (9, 1),
         (9, 2),
+        (10, 1),
+        (10, 2),
         (10, 3),
+        (10, 4),
+        (10, 5),
+        (10, 6),
         (10, 10),
         (10, 11),
         (10, 12),

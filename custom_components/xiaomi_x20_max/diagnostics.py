@@ -16,15 +16,14 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics without Xiaomi credentials or tokens."""
     controller: X20MaxController = hass.data[DOMAIN][entry.entry_id]
-    rooms = controller.rooms()
     return {
-        "did": "**REDACTED**",
+        "did": controller.did,
         "model": MODEL,
         "transport": "independent_xiaomi_oauth",
         "available": controller.available,
         "firmware": entry.data.get(CONF_FIRMWARE),
         "polled_properties": len(POLL_PROPERTIES),
-        "rooms": [{"id": room["id"], "name": "**REDACTED**"} for room in rooms],
+        "rooms": controller.rooms(),
         "status": controller.value_for_property(PropertyRef(2, 2)),
         "faults": controller.value_for_property(PropertyRef(2, 66)),
         "base_station": controller.value_for_property(PropertyRef(2, 18)),

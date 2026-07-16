@@ -85,7 +85,9 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
         status: int | None = None
         try:
             status = int(value) if value is not None else None
-            charging = int(self.controller.value_for_property(PropertyRef(3, 2)))
+            charging = int(
+                self.controller.value_for_property(PropertyRef(3, 2))
+            )
             if charging == 1 and status in (1, 2, 3, 9):
                 return VacuumActivity.DOCKED
             return ACTIVITY_MAP.get(status) if status is not None else None
@@ -104,17 +106,45 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         dnd = self.controller.decode_dnd() or {}
+        rooms = self.controller.rooms()
+        current_cleaning = self.controller.current_cleaning()
+        vacuum_position = self.controller.vacuum_position()
+        current_location = self.controller.current_location()
         return {
             "model": "xiaomi.vacuum.d109gl",
-            "transport": "Independent Xiaomi Cloud OAuth",
-            "room_ids": [room["id"] for room in self.controller.rooms()],
-            "rooms": self.controller.rooms(),
-            "miot_status": self.controller.value_for_property(PropertyRef(2, 2)),
-            "charging_state": self.controller.value_for_property(PropertyRef(3, 2)),
+            "transport": "Xiaomi Cloud OAuth (niezależny)",
+            "rooms": rooms,
+            "room_names": [room["name"] for room in rooms],
+            "room_ids": [room["id"] for room in rooms],
+            "rooms_by_id": {str(room["id"]): room["name"] for room in rooms},
+            "rooms_by_name": {room["name"]: room["id"] for room in rooms},
+            "miot_status": self.controller.value_for_property(
+                PropertyRef(2, 2)
+            ),
+            "charging_state": self.controller.value_for_property(
+                PropertyRef(3, 2)
+            ),
             "cleaning_area_m2": self._number(PropertyRef(2, 6), 100),
             "cleaning_time_minutes": self._number(PropertyRef(2, 7), 60),
-            "base_station": self.controller.value_for_property(PropertyRef(2, 18)),
-            "current_cleaning": self.controller.value_for_property(PropertyRef(2, 40)),
+            "base_station": self.controller.value_for_property(
+                PropertyRef(2, 18)
+            ),
+            "current_cleaning": self.controller.value_for_property(
+                PropertyRef(2, 40)
+            ),
+            "current_cleaning_decoded": current_cleaning,
+            "current_cleaning_room_names": (
+                current_cleaning.get("room_names") if current_cleaning else None
+            ),
+            "current_cleaning_room_labels": (
+                current_cleaning.get("room_labels") if current_cleaning else None
+            ),
+            "vacuum_position": vacuum_position,
+            "current_location": current_location,
+            "current_room_name": current_location.get("room_name"),
+            "current_room_id": current_location.get("room_id"),
+            "location_source": current_location.get("source"),
+            "location_confidence": current_location.get("confidence"),
             "faults": self.controller.value_for_property(PropertyRef(2, 66)),
             "dnd_start": dnd.get("start"),
             "dnd_end": dnd.get("end"),
@@ -145,7 +175,9 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
     async def async_locate(self, **kwargs: Any) -> None:
         await self.controller.async_action(ActionRef(6, 1))
 
-    async def async_set_fan_speed(self, fan_speed: str, **kwargs: Any) -> None:
+    async def async_set_fan_speed(
+        self, fan_speed: str, **kwargs: Any
+    ) -> None:
         if fan_speed not in SUCTION_LEVELS:
             raise X20MaxError(f"Unknown suction level: {fan_speed}")
         await self.controller.async_set_property(
@@ -158,7 +190,9 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
             for room in self.controller.rooms()
         ]
 
-    async def async_clean_segments(self, segment_ids: list[str], **kwargs: Any) -> None:
+    async def async_clean_segments(
+        self, segment_ids: list[str], **kwargs: Any
+    ) -> None:
         await self.controller.async_clean_rooms(segment_ids)
 
     async def async_send_command(

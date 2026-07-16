@@ -25,4 +25,6 @@ class X20MaxEntity(Entity):
         return self.controller.available
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(self.controller.subscribe(self.async_write_ha_state))
+        self.async_on_remove(
+            self.controller.subscribe(self.async_write_ha_state)
+        )

@@ -27,7 +27,9 @@ class NumberSetting:
 
 
 NUMBER_SETTINGS = (
-    NumberSetting("volume", PropertyRef(4, 2), 0, 100, 1, "%", "mdi:volume-high"),
+    NumberSetting(
+        "volume", PropertyRef(4, 2), 0, 100, 1, "%", "mdi:volume-high"
+    ),
     NumberSetting(
         "mop_wash_interval",
         PropertyRef(2, 81),
@@ -80,4 +82,6 @@ class X20MaxNumber(X20MaxEntity, NumberEntity):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        await self.controller.async_set_property(self.description.ref, int(value))
+        await self.controller.async_set_property(
+            self.description.ref, int(value)
+        )

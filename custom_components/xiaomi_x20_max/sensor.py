@@ -179,6 +179,7 @@ async def async_setup_entry(
         if controller.property_is_exposed(description.ref)
     ]
     entities.append(X20MaxRoomsSensor(controller))
+    entities.append(X20MaxCurrentLocationSensor(controller))
     entities.append(X20MaxStationAlertsSensor(controller))
     async_add_entities(entities)
 
@@ -261,7 +262,7 @@ class X20MaxSensor(X20MaxEntity, SensorEntity):
 
 
 class X20MaxRoomsSensor(X20MaxEntity, SensorEntity):
-    """Expose room IDs as a first-class diagnostic entity."""
+    """Expose cloud room names as a first-class diagnostic entity."""
 
     _attr_translation_key = "rooms"
     _attr_icon = "mdi:floor-plan"
@@ -271,17 +272,126 @@ class X20MaxRoomsSensor(X20MaxEntity, SensorEntity):
         super().__init__(controller, "sensor_rooms")
 
     @property
-    def native_value(self) -> int:
-        return len(self.controller.rooms())
+    def native_value(self) -> str | None:
+        names = self.controller.room_names()
+        return ", ".join(names) if names else None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         rooms = self.controller.rooms()
+        room_names = [item["name"] for item in rooms]
         return {
             "rooms": rooms,
+            "room_names": room_names,
             "room_ids": [item["id"] for item in rooms],
             "by_id": {str(item["id"]): item["name"] for item in rooms},
+            "by_name": {item["name"]: item["id"] for item in rooms},
+            "room_count": len(rooms),
         }
+
+
+class X20MaxCurrentLocationSensor(X20MaxEntity, SensorEntity):
+    """Expose the robot's current room/location without pretending precision."""
+
+    _attr_translation_key = "current_location"
+    _attr_icon = "mdi:map-marker-radius"
+
+    _LABELS_EN = {
+        "station": "Station",
+        "station_working": "Station working",
+        "washing_mops": "Washing mops",
+        "returning": "Returning to station",
+        "paused": "Paused",
+        "mapping": "Mapping",
+        "error": "Error",
+        "idle": "Idle",
+        "unknown": "Unknown",
+    }
+    _LABELS_PL = {
+        "station": "Stacja",
+        "station_working": "Praca stacji",
+        "washing_mops": "Mycie mopów",
+        "returning": "Powrót do stacji",
+        "paused": "Pauza",
+        "mapping": "Mapowanie",
+        "error": "Błąd",
+        "idle": "Bezczynny",
+        "unknown": "Nieznane",
+    }
+
+    def __init__(self, controller: X20MaxController) -> None:
+        super().__init__(controller, "sensor_current_location")
+
+    @property
+    def native_value(self) -> str | None:
+        location = self.controller.current_location()
+        room_name = location.get("room_name")
+        if isinstance(room_name, str) and room_name:
+            return room_name
+        labels = self._LABELS_PL if self._is_polish else self._LABELS_EN
+        return labels.get(str(location.get("location")), labels["unknown"])
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        location = self.controller.current_location()
+        current_cleaning = location.get("current_cleaning")
+        room_ids = []
+        room_names = []
+        room_labels = []
+        if isinstance(current_cleaning, dict):
+            room_ids = current_cleaning.get("room_ids") or []
+            room_names = current_cleaning.get("room_names") or []
+            room_labels = current_cleaning.get("room_labels") or []
+
+        return {
+            "location": location.get("location"),
+            "source": location.get("source"),
+            "confidence": location.get("confidence"),
+            "current_room_id": location.get("room_id"),
+            "current_room_name": location.get("room_name"),
+            "miot_status": location.get("miot_status"),
+            "vacuum_position": location.get("vacuum_position"),
+            "vacuum_position_raw": self.controller.value_for_property(
+                PropertyRef(10, 4)
+            ),
+            "map_object": self.controller.value_for_property(PropertyRef(10, 1)),
+            "trajectory_object": self.controller.value_for_property(
+                PropertyRef(10, 2)
+            ),
+            "current_map_id": self.controller.value_for_property(PropertyRef(10, 6)),
+            "current_cleaning_room_ids": room_ids,
+            "current_cleaning_room_names": room_names,
+            "current_cleaning_room_labels": room_labels,
+            "note": self._note(location),
+        }
+
+    @property
+    def _is_polish(self) -> bool:
+        return getattr(self.hass.config, "language", "en").startswith("pl")
+
+    def _note(self, location: dict[str, Any]) -> str | None:
+        source = location.get("source")
+        if source == "no_exact_room_in_cloud":
+            if self._is_polish:
+                return (
+                    "Robot nie zwrócił dokładnego pokoju w danych pozycji; "
+                    "kolejka sprzątania jest dostępna w atrybutach."
+                )
+            return (
+                "The robot did not expose an exact room in its position data; "
+                "the cleaning queue is available in attributes."
+            )
+        if source == "single_room_cleaning_task":
+            if self._is_polish:
+                return (
+                    "Pomieszczenie wynika z jedno-pokojowego zadania, a nie "
+                    "z punktu robota na mapie."
+                )
+            return (
+                "The room is inferred from a single-room task, not from the "
+                "robot point on the map."
+            )
+        return None
 
 
 class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):

@@ -25,6 +25,8 @@ If this integration helps you, you can support Smart Service:
 
 - Native vacuum entity: start, pause, stop, locate and return to base.
 - Exact room IDs and names from the active map.
+- Current location sensor with conservative room detection when the robot exposes
+  position data.
 - Clean one or multiple rooms by ID or exact name.
 - Vacuum/mop mode, suction, water level, 1–3 passes and route selection.
 - Omni station actions: empty bin, wash mops and dry mops.
@@ -65,8 +67,8 @@ add the integration from the UI.
 
 ## Clean rooms
 
-Room IDs and names are available in the **Rooms and IDs** sensor and in the
-vacuum entity attributes.
+Room IDs and names are available in the **Rooms** sensor and in the vacuum
+entity attributes.
 
 ```yaml
 action: xiaomi_x20_max.clean_rooms
@@ -118,6 +120,9 @@ Diagnostics redact the cloud device ID and room names.
 
 - Cloud polling; this is not a local integration.
 - One Xiaomi OAuth account/region per Home Assistant installation.
+- Exact current-room reporting depends on the robot exposing position data. If
+  Xiaomi Cloud returns only a cleaning queue, the location sensor reports
+  `Unknown` and exposes the queued rooms in attributes.
 - No map rendering.
 - The device does not expose continuous clean/dirty-water percentages.
 - Some MIoT properties are undocumented and can change with firmware.

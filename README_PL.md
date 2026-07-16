@@ -20,6 +20,8 @@ Jeśli ta integracja Ci pomaga, możesz wesprzeć Smart Service:
 
 - pełne sterowanie odkurzaczem i stacją Omni;
 - ID i nazwy pomieszczeń z aktualnej mapy;
+- sensor aktualnej lokalizacji z ostrożnym wykrywaniem pokoju, jeśli robot
+  udostępni dane pozycji;
 - sprzątanie jednego lub wielu pomieszczeń po ID albo nazwie;
 - tryb pracy, moc, ilość wody, 1–3 przejazdy i wybór trasy;
 - bateria, historia, błędy oraz trwałość materiałów eksploatacyjnych;
@@ -64,7 +66,7 @@ data:
   route: careful
 ```
 
-ID i nazwy są dostępne w sensorze **Pomieszczenia i ID**.
+ID i nazwy są dostępne w sensorze **Pomieszczenia**.
 
 ## Prywatność
 
@@ -78,6 +80,9 @@ identyfikator chmurowy i nazwy pomieszczeń.
 - komunikacja odbywa się przez chmurę Xiaomi;
 - obsługiwane jest jedno konto/region Xiaomi na instalację HA;
 - brak renderowania mapy;
+- dokładne wskazanie aktualnego pokoju zależy od tego, czy Xiaomi Cloud zwróci
+  dane pozycji robota. Jeśli chmura zwraca tylko kolejkę sprzątania, sensor
+  lokalizacji pokazuje `Nieznane`, a kolejkę udostępnia w atrybutach;
 - model nie udostępnia procentowego poziomu czystej i brudnej wody.
 
 Projekt nie jest powiązany z Xiaomi.

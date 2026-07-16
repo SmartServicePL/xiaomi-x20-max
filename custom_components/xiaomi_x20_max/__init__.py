@@ -48,7 +48,6 @@ SERVICE_EXECUTE_ACTION = "execute_action"
 
 ENTITY_IDS_SCHEMA = vol.All(cv.ensure_list, [cv.entity_id])
 RAW_VALUE_SCHEMA = vol.Any(bool, int, float, str, list, dict)
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
@@ -66,7 +65,9 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
     return True
 
 
-async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_migrate_entry(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> bool:
     """Migrate companion entries to direct cloud device IDs."""
     if entry.version >= 2 and CONF_DID in entry.data:
         return True
@@ -88,7 +89,9 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if device:
             source_name = device.name_by_user or device.name or source_name
 
-    robot = next((item for item in robots if item["did"] in source_unique_id), None)
+    robot = next(
+        (item for item in robots if item["did"] in source_unique_id), None
+    )
     if robot is None:
         robot = next(
             (
@@ -141,7 +144,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload an X20 Max."""
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
-    controller: X20MaxController | None = hass.data[DOMAIN].pop(entry.entry_id, None)
+    controller: X20MaxController | None = hass.data[DOMAIN].pop(
+        entry.entry_id, None
+    )
     if controller is not None:
         await controller.async_shutdown()
     return True

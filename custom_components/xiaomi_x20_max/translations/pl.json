@@ -4,19 +4,19 @@
     "step": {
       "user": {
         "title": "Wybierz X20 Max",
-        "description": "Wybierz X20 Max z konta Xiaomi uwierzytelnionego wcześniej w oficjalnej integracji Xiaomi Home.",
+        "description": "Wybierz X20 Max wykryty przez niezależnego klienta chmurowego tej integracji.",
         "data": {
           "did": "X20 Max"
         }
       }
     },
     "error": {
-      "invalid_device": "Wybrane urządzenie nie jest robotem Xiaomi Robot Vacuum X20 Max."
+      "invalid_device": "Wybrana encja nie jest robotem Xiaomi Robot Vacuum X20 Max."
     },
     "abort": {
       "already_configured": "Ten robot jest już skonfigurowany.",
       "no_devices": "Na tym koncie nie znaleziono Xiaomi Robot Vacuum X20 Max.",
-      "no_auth": "Nie znaleziono grantu OAuth Xiaomi. Najpierw skonfiguruj oficjalną integrację Xiaomi Home dla tego samego konta i regionu, a następnie spróbuj ponownie."
+      "no_auth": "Niezależne dane OAuth Xiaomi są niedostępne."
     }
   },
   "entity": {
@@ -38,7 +38,8 @@
       "detergent_level": { "name": "Poziom detergentu" },
       "dust_bag_life": { "name": "Zużycie worka na kurz" },
       "faults": { "name": "Błędy" },
-      "rooms": { "name": "Pomieszczenia i ID" },
+      "rooms": { "name": "Pomieszczenia" },
+      "current_location": { "name": "Aktualna lokalizacja" },
       "station_alerts": { "name": "Alarmy stacji" }
     },
     "number": {

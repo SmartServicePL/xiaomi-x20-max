@@ -29,7 +29,9 @@ async def async_setup_entry(
 class X20MaxSwitch(X20MaxEntity, SwitchEntity):
     """Proxy a writable MIoT boolean."""
 
-    def __init__(self, controller: X20MaxController, description: BoolProperty) -> None:
+    def __init__(
+        self, controller: X20MaxController, description: BoolProperty
+    ) -> None:
         super().__init__(controller, f"switch_{description.key}")
         self.description = description
         self._attr_translation_key = description.key

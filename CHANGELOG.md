@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased
+## 1.0.1 - 2026-07-16
 
 - Added a readable message for fault code `210030`: low clean-water tank level.
+- Room sensor now exposes readable room names as its state, with IDs/names in
+  attributes.
+- Added a current-location sensor with conservative room detection and diagnostic
+  attributes for map position and active cleaning queue.
 
 ## 1.0.0
 

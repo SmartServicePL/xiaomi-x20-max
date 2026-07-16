@@ -29,7 +29,9 @@ async def async_setup_entry(
 class X20MaxButton(X20MaxEntity, ButtonEntity):
     """Execute a parameterless X20 Max MIoT action."""
 
-    def __init__(self, controller: X20MaxController, description: ButtonAction) -> None:
+    def __init__(
+        self, controller: X20MaxController, description: ButtonAction
+    ) -> None:
         super().__init__(controller, f"button_{description.key}")
         self.description = description
         self._attr_translation_key = description.key

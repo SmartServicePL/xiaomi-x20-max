@@ -76,7 +76,9 @@ class X20MaxCloud:
 
     @property
     def ready(self) -> bool:
-        return bool(self.auth.get("access_token") and self.auth.get("refresh_token"))
+        return bool(
+            self.auth.get("access_token") and self.auth.get("refresh_token")
+        )
 
     async def async_initialize(self) -> None:
         """Load private credentials or import the current grant once."""
@@ -90,8 +92,7 @@ class X20MaxCloud:
             )
             if bootstrap is None:
                 raise X20MaxAuthError(
-                    "No Xiaomi OAuth grant found. Configure the official "
-                    "Xiaomi Home integration first."
+                    "Brak danych OAuth. Najpierw zaloguj konto Xiaomi."
                 )
             self.server, self.auth = bootstrap
             await self._async_save()
@@ -101,7 +102,9 @@ class X20MaxCloud:
         await self._async_ensure_token()
 
     async def _async_save(self) -> None:
-        await self._store.async_save({"server": self.server, "auth": self.auth})
+        await self._store.async_save(
+            {"server": self.server, "auth": self.auth}
+        )
 
     @property
     def _host(self) -> str:
@@ -119,7 +122,7 @@ class X20MaxCloud:
 
     async def _async_ensure_token(self, *, force: bool = False) -> None:
         if not self.ready:
-            raise X20MaxAuthError("Xiaomi OAuth credentials are unavailable")
+            raise X20MaxAuthError("Brak danych OAuth Xiaomi")
         if (
             not force
             and int(self.auth.get("expires_ts") or 0)
@@ -143,20 +146,25 @@ class X20MaxCloud:
                 response = await self._session.get(
                     url,
                     params={"data": json.dumps(payload, separators=(",", ":"))},
-                    headers={"content-type": "application/x-www-form-urlencoded"},
+                    headers={
+                        "content-type": "application/x-www-form-urlencoded"
+                    },
                     timeout=30,
                 )
                 body = await response.json(content_type=None)
             except Exception as err:
                 raise X20MaxAuthError(
-                    f"Could not refresh Xiaomi OAuth credentials: {err}"
+                    f"Odświeżenie OAuth Xiaomi nie powiodło się: {err}"
                 ) from err
             result = body.get("result") if isinstance(body, dict) else None
             if response.status != 200 or body.get("code") != 0 or not result:
-                raise X20MaxAuthError("Xiaomi rejected the OAuth token refresh")
+                raise X20MaxAuthError(
+                    "Xiaomi odrzuciło odświeżenie danych OAuth"
+                )
             self.auth.update(result)
             self.auth["expires_ts"] = int(
-                time.time() + int(result.get("expires_in") or 0) * TOKEN_EXPIRES_RATIO
+                time.time()
+                + int(result.get("expires_in") or 0) * TOKEN_EXPIRES_RATIO
             )
             await self._async_save()
 
@@ -173,25 +181,27 @@ class X20MaxCloud:
             )
             body = await response.json(content_type=None)
         except Exception as err:
-            raise X20MaxCloudError(f"Could not connect to Xiaomi Cloud: {err}") from err
+            raise X20MaxCloudError(f"Błąd połączenia z Xiaomi Cloud: {err}") from err
         if response.status == 401 and retry_auth:
             await self._async_ensure_token(force=True)
             return await self._async_post(path, data, retry_auth=False)
         if response.status != 200:
-            raise X20MaxCloudError(f"Xiaomi Cloud returned HTTP {response.status}")
-        if not isinstance(body, dict) or body.get("code") != 0:
-            message = (
-                body.get("message", "unknown error")
-                if isinstance(body, dict)
-                else "invalid response"
+            raise X20MaxCloudError(
+                f"Xiaomi Cloud zwróciło HTTP {response.status}"
             )
+        if not isinstance(body, dict) or body.get("code") != 0:
+            message = body.get("message", "nieznany błąd") if isinstance(
+                body, dict
+            ) else "nieprawidłowa odpowiedź"
             raise X20MaxCloudError(f"Xiaomi Cloud: {message}")
         return body
 
     async def async_get_properties(
         self, did: str, refs: tuple[PropertyRef, ...]
     ) -> dict[PropertyRef, Any]:
-        params = [{"did": did, "siid": ref.siid, "piid": ref.piid} for ref in refs]
+        params = [
+            {"did": did, "siid": ref.siid, "piid": ref.piid} for ref in refs
+        ]
         body = await self._async_post(
             "/app/v2/miotspec/prop/get",
             {"datasource": 1, "params": params},
@@ -200,10 +210,14 @@ class X20MaxCloud:
         for item in body.get("result", []):
             if item.get("code", 0) != 0 or "value" not in item:
                 continue
-            values[PropertyRef(int(item["siid"]), int(item["piid"]))] = item["value"]
+            values[PropertyRef(int(item["siid"]), int(item["piid"]))] = item[
+                "value"
+            ]
         return values
 
-    async def async_set_property(self, did: str, ref: PropertyRef, value: Any) -> None:
+    async def async_set_property(
+        self, did: str, ref: PropertyRef, value: Any
+    ) -> None:
         body = await self._async_post(
             "/app/v2/miotspec/prop/set",
             {
@@ -220,7 +234,7 @@ class X20MaxCloud:
         result = (body.get("result") or [{}])[0]
         if result.get("code", 0) != 0:
             raise X20MaxCloudError(
-                f"MIoT {ref.siid}.{ref.piid}: code {result.get('code')}"
+                f"MIoT {ref.siid}.{ref.piid}: kod {result.get('code')}"
             )
 
     async def async_action(
@@ -247,9 +261,13 @@ class X20MaxCloud:
         # generic operation-failed code even though it starts the requested
         # room list immediately. Treat only that exact model action/code as
         # accepted; every other non-zero MIoT result remains an error.
-        accepted_room_clean = siid == 2 and aiid == 16 and code == -704083036
+        accepted_room_clean = (
+            siid == 2 and aiid == 16 and code == -704083036
+        )
         if code != 0 and not accepted_room_clean:
-            raise X20MaxCloudError(f"MIoT action {siid}.{aiid}: code {code}")
+            raise X20MaxCloudError(
+                f"Akcja MIoT {siid}.{aiid}: kod {code}"
+            )
         return result
 
     async def async_list_robots(self) -> list[dict[str, Any]]:
@@ -290,7 +308,9 @@ class X20MaxCloud:
                         "did": str(device["did"]),
                         "name": str(device.get("name") or "X20 Max"),
                         "model": MODEL,
-                        "firmware": (device.get("extra") or {}).get("fw_version"),
+                        "firmware": (device.get("extra") or {}).get(
+                            "fw_version"
+                        ),
                         "online": bool(device.get("isOnline", True)),
                     }
                 )

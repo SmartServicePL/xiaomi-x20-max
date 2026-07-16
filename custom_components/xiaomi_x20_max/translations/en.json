@@ -1,0 +1,35 @@
+{
+  "title": "Xiaomi Robot Vacuum X20 Max",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select an X20 Max",
+        "description": "Select an X20 Max discovered by the integration's independent cloud client.",
+        "data": {
+          "did": "X20 Max"
+        }
+      }
+    },
+    "error": {
+      "invalid_device": "The selected device is not a Xiaomi Robot Vacuum X20 Max."
+    },
+    "abort": {
+      "already_configured": "This robot is already configured.",
+      "no_devices": "No Xiaomi Robot Vacuum X20 Max was found on this account.",
+      "no_auth": "Independent Xiaomi OAuth credentials are unavailable."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "rooms": {
+        "name": "Rooms"
+      },
+      "current_location": {
+        "name": "Current location"
+      },
+      "station_alerts": {
+        "name": "Station alerts"
+      }
+    }
+  }
+}

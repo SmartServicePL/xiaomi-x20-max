@@ -28,7 +28,9 @@ class X20MaxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        cloud: X20MaxCloud | None = self.hass.data.get(DOMAIN, {}).get(CLOUD_DATA_KEY)
+        cloud: X20MaxCloud | None = self.hass.data.get(DOMAIN, {}).get(
+            CLOUD_DATA_KEY
+        )
         if cloud is None:
             cloud = X20MaxCloud(self.hass)
             self.hass.data.setdefault(DOMAIN, {})[CLOUD_DATA_KEY] = cloud
@@ -40,7 +42,9 @@ class X20MaxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="no_auth")
 
         by_did = {item["did"]: item for item in robots}
-        choices = {did: f"{item['name']} ({did})" for did, item in by_did.items()}
+        choices = {
+            did: f"{item['name']} ({did})" for did, item in by_did.items()
+        }
         if not choices:
             return self.async_abort(reason="no_devices")
 
@@ -50,7 +54,9 @@ class X20MaxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if robot is None:
                 return self.async_show_form(
                     step_id="user",
-                    data_schema=vol.Schema({vol.Required(CONF_DID): vol.In(choices)}),
+                    data_schema=vol.Schema(
+                        {vol.Required(CONF_DID): vol.In(choices)}
+                    ),
                     errors={"base": "invalid_device"},
                 )
             await self.async_set_unique_id(did)
@@ -67,5 +73,7 @@ class X20MaxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({vol.Required(CONF_DID): vol.In(choices)}),
+            data_schema=vol.Schema(
+                {vol.Required(CONF_DID): vol.In(choices)}
+            ),
         )
