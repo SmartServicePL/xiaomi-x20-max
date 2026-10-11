@@ -2,75 +2,99 @@ blueprint:
   name: X20 Max - maintenance notifications
   description: >-
     Sends a custom notification action when one X20 Max reports a persistent
-    station fault, becomes unavailable, or reaches a detergent/consumable
-    threshold. Create one automation from this blueprint for each robot.
+    station fault, enters the error state, becomes unavailable, or a
+    detergent/consumable level drops below its threshold. Create one
+    automation from this blueprint for each robot. Consumable alerts fire when
+    a value crosses the threshold; values that are already below it when the
+    automation is created, and changes reported right after Home Assistant
+    starts or the robot reconnects, do not send a notification.
+    Polski: powiadomienia serwisowe X20 Max; język treści wybierz w polu
+    "Notification language / Język powiadomień".
   domain: automation
   homeassistant:
-    min_version: 2026.7.0
+    min_version: 2024.10.0
   input:
     robot_name:
-      name: Robot name
+      name: Robot name / Nazwa robota
       default: X20 Max
       selector:
         text:
+    language:
+      name: Notification language / Język powiadomień
+      default: en
+      selector:
+        select:
+          options:
+            - label: English
+              value: en
+            - label: Polski
+              value: pl
     vacuum:
-      name: Vacuum entity
+      name: Vacuum entity / Encja odkurzacza
+      description: The "Control" vacuum entity of this robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: vacuum
     station_alert:
-      name: Station alerts sensor
+      name: Station alerts sensor / Sensor alarmów stacji
+      description: The "Station alerts" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     detergent:
-      name: Detergent level sensor
+      name: Detergent level sensor / Sensor poziomu detergentu
+      description: The "Detergent level" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     mops:
-      name: Mop life sensor
+      name: Mop life sensor / Sensor trwałości mopów
+      description: The "Mop life" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     filter:
-      name: Filter life sensor
+      name: Filter life sensor / Sensor trwałości filtra
+      description: The "Filter life" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     main_brush:
-      name: Main brush life sensor
+      name: Main brush life sensor / Sensor trwałości szczotki głównej
+      description: The "Main brush life" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     side_brush:
-      name: Side brush life sensor
+      name: Side brush life sensor / Sensor trwałości szczotki bocznej
+      description: The "Side brush life" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     dust_bag:
-      name: Dust bag life sensor
+      name: Dust bag life sensor / Sensor trwałości worka na kurz
+      description: The "Dust bag life" sensor of the same robot.
       selector:
         entity:
           filter:
             - integration: xiaomi_x20_max
               domain: sensor
     notification_actions:
-      name: Notification action
+      name: Notification action / Akcja powiadomienia
       description: >-
         Add a notification action. Templates may use x20_title and x20_message.
       selector:
@@ -82,11 +106,17 @@ max: 10
 triggers:
   - trigger: state
     entity_id: !input station_alert
+    not_from:
+      - unavailable
+      - unknown
     to: Problem
     for: "00:01:00"
     id: station
   - trigger: state
     entity_id: !input vacuum
+    not_from:
+      - unavailable
+      - unknown
     to: error
     id: vacuum_error
   - trigger: state
@@ -119,36 +149,60 @@ triggers:
     below: 20
     id: dust_bag
 
+conditions:
+  # A value that only reappears after a cloud outage, a restart or an
+  # integration reload is not a new event; notify only on real changes.
+  - condition: template
+    value_template: >-
+      {{ trigger.id == 'unavailable'
+         or (trigger.from_state is not none
+             and trigger.from_state.state not in ['unavailable', 'unknown']) }}
+
 variables:
   configured_robot_name: !input robot_name
+  language: !input language
+  station_alert_entity: !input station_alert
 
 actions:
   - variables:
+      pl: "{{ language == 'pl' }}"
       item: >-
         {% set names = {
-          'detergent': 'detergent',
-          'mops': 'mops',
-          'filter': 'filter',
-          'main_brush': 'main brush',
-          'side_brush': 'side brush',
-          'dust_bag': 'dust bag'
+          'detergent': ['detergent', 'detergent'],
+          'mops': ['mops', 'mopy'],
+          'filter': ['filter', 'filtr'],
+          'main_brush': ['main brush', 'szczotka główna'],
+          'side_brush': ['side brush', 'szczotka boczna'],
+          'dust_bag': ['dust bag', 'worek na kurz']
         } %}
-        {{ names.get(trigger.id, 'robot') }}
+        {{ names.get(trigger.id, ['robot', 'robot'])[1 if pl else 0] }}
       remaining_hours: >-
         {{ trigger.to_state.attributes.get('remaining_hours')
            if trigger.to_state is not none else none }}
+      station_problem: >-
+        {{ state_attr(station_alert_entity, 'problem') or '' }}
       detail: >-
         {% if trigger.id == 'station' %}
           {{ trigger.to_state.attributes.get('problem')
-             or 'The station reported a problem.' }}
+             or ('Stacja zgłosiła problem.' if pl
+                 else 'The station reported a problem.') }}
         {% elif trigger.id == 'vacuum_error' %}
-          The robot entered the error state.
+          {{ 'Robot przeszedł w stan błędu.' if pl
+             else 'The robot entered the error state.' }}
+          {{ station_problem }}
         {% elif trigger.id == 'unavailable' %}
-          The robot has been unavailable for at least 2 minutes.
+          {{ 'Robot nie odpowiada od kilku minut (brak danych z chmury Xiaomi albo robot jest offline).'
+             if pl else
+             'The robot has not responded for several minutes (no data from Xiaomi Cloud or the robot is offline).' }}
         {% else %}
-          Remaining {{ item }}: {{ trigger.to_state.state }}%
+          {% if pl %}
+            {{ item | capitalize }}: pozostało {{ trigger.to_state.state }}%
+          {% else %}
+            Remaining {{ item }}: {{ trigger.to_state.state }}%
+          {% endif %}
           {% if remaining_hours is not none %}
-            (approximately {{ remaining_hours }} operating hours)
+            {{ '(około ' ~ remaining_hours ~ ' h pracy)' if pl
+               else '(approximately ' ~ remaining_hours ~ ' operating hours)' }}
           {% endif %}
         {% endif %}
       x20_title: "X20 Max: {{ configured_robot_name }}"
@@ -157,10 +211,7 @@ actions:
         {% if trigger.id in [
           'mops', 'filter', 'main_brush', 'side_brush', 'dust_bag'
         ] %}
-          Clean or replace the item and reset its counter afterwards.
+          {{ 'Wyczyść lub wymień element i wyzeruj jego licznik.' if pl
+             else 'Clean or replace the item and reset its counter afterwards.' }}
         {% endif %}
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ true }}"
-        sequence: !input notification_actions
+  - sequence: !input notification_actions
