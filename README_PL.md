@@ -96,6 +96,16 @@ ruszy (np. brak czystej wody albo problem ze stacją), akcja kończy się
 błędem od razu, gdy robot zatrzyma się z kodem usterki. Błąd podaje status
 MIoT i kody usterek, więc automatyzacja może na niego zareagować.
 
+Robot zawsze zaczyna sprzątanie od pomieszczenia, w którym stoi stacja:
+wyjeżdża ze stacji i od niej planuje trasę, więc pokój ze stacją jest
+sprzątany jako pierwszy, nawet jeśli w `rooms` pierwszy jest inny pokój.
+Żeby kolejka była przewidywalna, podawaj pokój ze stacją na początku.
+
+W trakcie zadania z mopowaniem robot wraca do stacji na mycie mopów (stan
+`returning`) i myje je w stacji (stan `cleaning`). Zadanie jest zakończone,
+gdy stan zmieni się na `docked`. Surowy status MIoT jest w atrybucie
+`miot_status`.
+
 `mode`, `suction`, `water_level`, `passes` i `route` zmieniają globalne
 ustawienia robota i zostają po zakończeniu sprzątania. `vacuum.start`,
 `vacuum.clean_area` i harmonogramy w aplikacji Xiaomi Home używają tych

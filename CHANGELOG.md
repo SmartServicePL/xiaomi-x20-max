@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.3 - 2026-10-11
+
+- Vacuum state while the station washes the mops (MIoT status 7) is now
+  `cleaning` instead of `returning`, and the trip back to wash them in the
+  middle of a task (status 20) is `returning` instead of `paused`. The meaning
+  was confirmed in the state history of two robots. The vacuum entity and the
+  location sensor now use one status table.
+- Automations that treat `docked` as the end of a task keep working: washing
+  the mops during a task never reports `docked`.
+- The start check no longer gives up at once when the robot was already
+  paused with a fault before the call; it waits the full window instead.
+- README: the robot always begins in the room with its station.
+- Tests on the Home Assistant test framework (Python 3.14) run in CI.
+
 ## 1.1.2 - 2026-10-11
 
 - Room cleaning start confirmation waits up to 5 minutes instead of 30

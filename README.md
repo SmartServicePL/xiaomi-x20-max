@@ -106,6 +106,16 @@ clean water or a station fault), the action fails as soon as the robot
 pauses with a fault code. The error lists the MIoT status and fault codes, so
 automations can react to it.
 
+The robot always begins in the room where its station stands: it leaves the
+station and plans the route from there, so the station room is cleaned first
+even when another room is first in `rooms`. Put the station room first to keep
+the order predictable.
+
+During a mopping task the robot drives back to wash its mops (state
+`returning`) and washes them in the station (state `cleaning`). The task is
+over when the state becomes `docked`. The raw MIoT status is available in the
+`miot_status` attribute.
+
 `mode`, `suction`, `water_level`, `passes` and `route` change the robot's
 global settings and stay in effect after the run. `vacuum.start`,
 `vacuum.clean_area` and schedules in the Xiaomi Home app use those current
