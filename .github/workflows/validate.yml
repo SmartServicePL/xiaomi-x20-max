@@ -26,3 +26,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Hassfest validation
         uses: home-assistant/actions/hassfest@master
+
+  validate-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: English translation matches strings.json
+        run: >-
+          diff custom_components/xiaomi_x20_max/strings.json
+          custom_components/xiaomi_x20_max/translations/en.json
