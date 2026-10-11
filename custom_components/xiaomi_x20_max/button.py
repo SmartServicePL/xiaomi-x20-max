@@ -38,6 +38,9 @@ class X20MaxButton(X20MaxEntity, ButtonEntity):
         self._attr_icon = description.icon
         if description.advanced:
             self._attr_entity_category = EntityCategory.CONFIG
+        # Map-destroying actions (clear map, re-partition, new mapping) change
+        # room IDs used by automations; they must be enabled deliberately.
+        self._attr_entity_registry_enabled_default = description.enabled_default
 
     async def async_press(self) -> None:
         await self.controller.async_action(self.description.ref)

@@ -11,14 +11,18 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ConfigEntryNotReady, ServiceValidationError
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryNotReady,
+    ServiceValidationError,
+)
 from homeassistant.helpers import (
     config_validation as cv,
     device_registry as dr,
     entity_registry as er,
 )
 
-from .cloud import X20MaxAuthError, X20MaxCloud
+from .cloud import X20MaxAuthError, X20MaxCloud, X20MaxCloudError
 from .const import (
     CLEANING_MODES,
     CLOUD_DATA_KEY,
@@ -36,7 +40,11 @@ from .const import (
     ActionRef,
     PropertyRef,
 )
-from .controller import X20MaxController, X20MaxError, X20MaxNotReady
+from .controller import (
+    X20MaxAuthFailed,
+    X20MaxController,
+    X20MaxNotReady,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +54,7 @@ SERVICE_SET_DND = "set_dnd"
 SERVICE_SET_PROPERTY = "set_property"
 SERVICE_EXECUTE_ACTION = "execute_action"
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 ENTITY_IDS_SCHEMA = vol.All(cv.ensure_list, [cv.entity_id])
 RAW_VALUE_SCHEMA = vol.Any(bool, int, float, str, list, dict)
 
@@ -58,7 +67,8 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
         domain_data[CLOUD_DATA_KEY] = cloud
         try:
             await cloud.async_initialize()
-        except X20MaxAuthError as err:
+        except X20MaxCloudError as err:
+            # Entries retry (or ask for re-authentication) on their own.
             _LOGGER.warning("X20 Max OAuth is not ready: %s", err)
     if not hass.services.has_service(DOMAIN, SERVICE_CLEAN_ROOMS):
         _async_register_services(hass)
@@ -132,7 +142,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await cloud.async_initialize()
         controller = X20MaxController(hass, entry, cloud)
         await controller.async_initialize()
-    except (X20MaxAuthError, X20MaxNotReady) as err:
+    except (X20MaxAuthError, X20MaxAuthFailed) as err:
+        raise ConfigEntryAuthFailed(str(err)) from err
+    except (X20MaxCloudError, X20MaxNotReady) as err:
         raise ConfigEntryNotReady(str(err)) from err
 
     hass.data[DOMAIN][entry.entry_id] = controller
@@ -171,60 +183,44 @@ def _controllers_from_call(
     return controllers
 
 
-def _service_error(err: Exception) -> ServiceValidationError:
-    return ServiceValidationError(str(err))
-
-
 def _async_register_services(hass: HomeAssistant) -> None:
+    # X20MaxError is a HomeAssistantError: cloud and device failures reach the
+    # user as such, while bad input (unknown room, empty list) is raised as
+    # ServiceValidationError by the controller itself.
     async def clean_rooms(call: ServiceCall) -> None:
-        try:
-            for controller in _controllers_from_call(hass, call):
-                await controller.async_clean_rooms(
-                    call.data["rooms"],
-                    mode=call.data.get("mode"),
-                    suction=call.data.get("suction"),
-                    water_level=call.data.get("water_level"),
-                    passes=call.data.get("passes"),
-                    route=call.data.get("route"),
-                )
-        except X20MaxError as err:
-            raise _service_error(err) from err
+        for controller in _controllers_from_call(hass, call):
+            await controller.async_clean_rooms(
+                call.data["rooms"],
+                mode=call.data.get("mode"),
+                suction=call.data.get("suction"),
+                water_level=call.data.get("water_level"),
+                passes=call.data.get("passes"),
+                route=call.data.get("route"),
+            )
 
     async def station_action(call: ServiceCall) -> None:
-        try:
-            action = STATION_ACTIONS[call.data["action"]]
-            for controller in _controllers_from_call(hass, call):
-                await controller.async_action(action)
-        except X20MaxError as err:
-            raise _service_error(err) from err
+        action = STATION_ACTIONS[call.data["action"]]
+        for controller in _controllers_from_call(hass, call):
+            await controller.async_action(action)
 
     async def set_dnd(call: ServiceCall) -> None:
-        try:
-            start: time = call.data["start"]
-            end: time = call.data["end"]
-            for controller in _controllers_from_call(hass, call):
-                await controller.async_set_dnd(
-                    start, end, call.data.get("enabled", True)
-                )
-        except X20MaxError as err:
-            raise _service_error(err) from err
+        start: time = call.data["start"]
+        end: time = call.data["end"]
+        for controller in _controllers_from_call(hass, call):
+            await controller.async_set_dnd(
+                start, end, call.data.get("enabled", True)
+            )
 
     async def set_property(call: ServiceCall) -> None:
-        try:
-            ref = PropertyRef(call.data["siid"], call.data["piid"])
-            for controller in _controllers_from_call(hass, call):
-                await controller.async_set_property(ref, call.data["value"])
-        except X20MaxError as err:
-            raise _service_error(err) from err
+        ref = PropertyRef(call.data["siid"], call.data["piid"])
+        for controller in _controllers_from_call(hass, call):
+            await controller.async_set_property(ref, call.data["value"])
 
     async def execute_action(call: ServiceCall) -> None:
-        try:
-            ref = ActionRef(call.data["siid"], call.data["aiid"])
-            inputs = call.data.get("inputs", [])
-            for controller in _controllers_from_call(hass, call):
-                await controller.async_action(ref, inputs)
-        except X20MaxError as err:
-            raise _service_error(err) from err
+        ref = ActionRef(call.data["siid"], call.data["aiid"])
+        inputs = call.data.get("inputs", [])
+        for controller in _controllers_from_call(hass, call):
+            await controller.async_action(ref, inputs)
 
     hass.services.async_register(
         DOMAIN,

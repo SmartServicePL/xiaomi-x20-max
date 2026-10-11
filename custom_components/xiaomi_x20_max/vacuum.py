@@ -11,7 +11,7 @@ from homeassistant.components.vacuum import (
     VacuumEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
@@ -75,9 +75,49 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
         | VacuumEntityFeature.CLEAN_AREA
     )
     _attr_fan_speed_list = list(SUCTION_LEVELS)
+    # Large or frequently changing payloads stay out of the recorder.
+    _unrecorded_attributes = frozenset(
+        {
+            "rooms",
+            "rooms_by_id",
+            "rooms_by_name",
+            "current_cleaning",
+            "current_cleaning_decoded",
+            "vacuum_position",
+            "current_location",
+        }
+    )
 
     def __init__(self, controller: X20MaxController) -> None:
         super().__init__(controller, "vacuum")
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(self.controller.subscribe(self._handle_update))
+
+    @callback
+    def _handle_update(self) -> None:
+        self._check_segments_changed()
+        self.async_write_ha_state()
+
+    @callback
+    def _check_segments_changed(self) -> None:
+        """Raise the HA repair issue when the robot map has other rooms.
+
+        Same rule as the core Roborock and Ecovacs integrations: compare the
+        segment IDs saved with the area mapping to the current room IDs, and
+        skip the check while the map is not loaded.
+        """
+        if self.registry_entry is None:
+            return
+        rooms = self.controller.rooms()
+        if not rooms:
+            return
+        last_seen = self.last_seen_segments
+        if last_seen is None:
+            return
+        current_ids = {str(room["id"]) for room in rooms}
+        if current_ids != {segment.id for segment in last_seen}:
+            self.async_create_segments_issue()
 
     @property
     def activity(self) -> VacuumActivity | None:
@@ -185,9 +225,11 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
         )
 
     async def async_get_segments(self) -> list[Segment]:
+        # Raises a readable error instead of an empty list when the map is
+        # not loaded, so the area mapping dialog explains what is missing.
+        rooms = await self.controller.async_ensure_rooms()
         return [
-            Segment(id=str(room["id"]), name=room["name"])
-            for room in self.controller.rooms()
+            Segment(id=str(room["id"]), name=room["name"]) for room in rooms
         ]
 
     async def async_clean_segments(

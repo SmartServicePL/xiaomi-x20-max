@@ -13,15 +13,21 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
 
-from .cloud import X20MaxCloud, X20MaxCloudError
+from .cloud import (
+    X20MaxActionError,
+    X20MaxAuthError,
+    X20MaxCloud,
+    X20MaxCloudError,
+)
 from .const import (
     CLEANING_MODES,
     CONF_DID,
     CONF_FIRMWARE,
     CONF_NAME,
+    DOMAIN,
     MODEL,
     MODEL_ACTIONS,
     POLL_PROPERTIES,
@@ -36,10 +42,27 @@ _LOGGER = logging.getLogger(__name__)
 
 POLL_INTERVAL = timedelta(seconds=30)
 AVAILABLE_GRACE_SECONDS = 180
+MAX_BACKOFF_SECONDS = 300
+ONLINE_CHECK_SECONDS = 300
 STATION_STATUSES = {2, 3, 7, 9, 12, 14}
 RETURNING_STATUSES = {6, 13, 19, 20, 21}
 CLEANING_STATUSES = {4, 16, 17}
 PAUSED_STATUSES = {5, 18}
+ERROR_STATUS = 15
+
+STATUS_PROPERTY = PropertyRef(2, 2)
+ROOMS_PROPERTY = PropertyRef(2, 16)
+CURRENT_TASK_PROPERTY = PropertyRef(2, 40)
+FAULTS_PROPERTY = PropertyRef(2, 66)
+ROOM_CLEAN_ACTION = ActionRef(2, 16)
+# Generic MIoT "operation failed" code. Firmware 4.5.6_0406 returns it for
+# accepted room cleaning too, but also for real refusals (no clean water,
+# station fault, robot busy or offline), so the start is verified by reading
+# the robot state instead of being trusted either way.
+ROOM_CLEAN_UNCONFIRMED_CODE = -704083036
+START_CONFIRM_PROPERTIES = (STATUS_PROPERTY, CURRENT_TASK_PROPERTY, FAULTS_PROPERTY)
+START_CONFIRM_TIMEOUT = 30
+START_CONFIRM_INTERVAL = 3
 
 
 class X20MaxError(HomeAssistantError):
@@ -48,6 +71,20 @@ class X20MaxError(HomeAssistantError):
 
 class X20MaxNotReady(X20MaxError):
     """The standalone transport is not ready."""
+
+
+class X20MaxAuthFailed(X20MaxError):
+    """Xiaomi rejected the OAuth grant; the user has to re-authenticate."""
+
+
+class X20MaxValidationError(X20MaxError, ServiceValidationError):
+    """Invalid input supplied by the user (unknown room, empty list)."""
+
+
+def _action_error_message(ref: ActionRef, err: X20MaxCloudError) -> str:
+    if isinstance(err, X20MaxActionError):
+        return f"Akcja MIoT {ref.siid}.{ref.aiid} nie powiodła się: kod {err.code}"
+    return f"Akcja MIoT {ref.siid}.{ref.aiid} nie powiodła się: {err}"
 
 
 class X20MaxController:
@@ -67,6 +104,10 @@ class X20MaxController:
         self._remove_delayed_refresh: Callable[[], None] | None = None
         self._refresh_lock = asyncio.Lock()
         self._last_success = 0.0
+        self._failures = 0
+        self._retry_at = 0.0
+        self._online: bool | None = None
+        self._online_checked = 0.0
 
     async def async_initialize(self) -> None:
         """Fetch the first complete snapshot and start polling."""
@@ -76,10 +117,12 @@ class X20MaxController:
             )
         try:
             await self.async_refresh()
+        except X20MaxAuthFailed:
+            raise
         except X20MaxError as err:
             raise X20MaxNotReady(str(err)) from err
         self._remove_interval = async_track_time_interval(
-            self.hass, self._schedule_refresh, POLL_INTERVAL
+            self.hass, self._scheduled_refresh, POLL_INTERVAL
         )
 
     async def async_shutdown(self) -> None:
@@ -108,10 +151,24 @@ class X20MaxController:
             listener()
 
     @callback
-    def _schedule_refresh(self, _now=None) -> None:
-        self.hass.async_create_task(
-            self.async_refresh(), f"{self.name} X20 Max refresh"
+    def _scheduled_refresh(self, _now=None) -> None:
+        """Poll on the regular interval, unless backing off after errors."""
+        if time_module.monotonic() < self._retry_at:
+            return
+        self._start_refresh_task()
+
+    @callback
+    def _start_refresh_task(self) -> None:
+        self.entry.async_create_background_task(
+            self.hass, self._async_safe_refresh(), f"{self.name} X20 Max refresh"
         )
+
+    async def _async_safe_refresh(self) -> None:
+        """Background refresh; failures are logged and reflected in state."""
+        try:
+            await self.async_refresh()
+        except X20MaxError:
+            pass
 
     @callback
     def _schedule_delayed_refresh(self) -> None:
@@ -124,7 +181,7 @@ class X20MaxController:
     @callback
     def _delayed_refresh(self, _now) -> None:
         self._remove_delayed_refresh = None
-        self._schedule_refresh()
+        self._start_refresh_task()
 
     async def async_refresh(self) -> None:
         """Refresh every model-specific property in one cloud request."""
@@ -135,21 +192,85 @@ class X20MaxController:
                 values = await self.cloud.async_get_properties(
                     self.did, POLL_PROPERTIES
                 )
-            except X20MaxCloudError as err:
-                _LOGGER.warning("Refresh failed for %s: %s", self.name, err)
+                if not values:
+                    raise X20MaxCloudError(
+                        "Xiaomi Cloud nie zwróciło żadnych danych"
+                    )
+            except X20MaxAuthError as err:
+                self._record_failure(err)
                 self._notify()
-                raise X20MaxError(str(err)) from err
-            if not values:
-                raise X20MaxError(
-                    f"{self.name}: Xiaomi Cloud nie zwróciło żadnych danych"
-                )
+                self.entry.async_start_reauth(self.hass)
+                raise X20MaxAuthFailed(f"{self.name}: {err}") from err
+            except X20MaxCloudError as err:
+                self._record_failure(err)
+                self._notify()
+                raise X20MaxError(f"{self.name}: {err}") from err
             self._values.update(values)
             self._last_success = time_module.monotonic()
+            if self._failures:
+                _LOGGER.info(
+                    "%s: Xiaomi Cloud is responding again after %s failed "
+                    "requests",
+                    self.name,
+                    self._failures,
+                )
+            self._failures = 0
+            self._retry_at = 0.0
+            await self._async_check_online()
             self._notify()
+
+    def _record_failure(self, err: Exception) -> None:
+        """Count a failed poll and back off exponentially (30 s to 5 min)."""
+        self._failures += 1
+        delay = min(
+            POLL_INTERVAL.total_seconds() * 2 ** (self._failures - 1),
+            MAX_BACKOFF_SECONDS,
+        )
+        # One second of slack so the interval tick at `delay` is not skipped.
+        self._retry_at = time_module.monotonic() + delay - 1
+        if self._failures == 1:
+            _LOGGER.warning(
+                "%s: Xiaomi Cloud request failed (%s); retrying with backoff",
+                self.name,
+                err,
+            )
+        else:
+            _LOGGER.debug(
+                "%s: Xiaomi Cloud request failed again (%s), next attempt in "
+                "%.0f s",
+                self.name,
+                err,
+                delay,
+            )
+
+    async def _async_check_online(self) -> None:
+        """Read Xiaomi's online flag every 5 min, every poll while offline."""
+        now = time_module.monotonic()
+        if (
+            self._online is not False
+            and self._online_checked
+            and now - self._online_checked < ONLINE_CHECK_SECONDS
+        ):
+            return
+        self._online_checked = now
+        try:
+            online = await self.cloud.async_get_online(self.did)
+        except X20MaxCloudError as err:
+            _LOGGER.debug("%s: online check failed: %s", self.name, err)
+            return
+        if online is None:
+            return
+        if self._online is not None and online != self._online:
+            _LOGGER.info(
+                "%s: Xiaomi reports the robot %s",
+                self.name,
+                "online" if online else "offline",
+            )
+        self._online = online
 
     @property
     def available(self) -> bool:
-        return bool(
+        return self._online is not False and bool(
             self._last_success
             and time_module.monotonic() - self._last_success
             < AVAILABLE_GRACE_SECONDS
@@ -194,11 +315,29 @@ class X20MaxController:
                 self.did, ref.siid, ref.aiid, inputs or []
             )
         except X20MaxCloudError as err:
-            raise X20MaxError(
-                f"Akcja MIoT {ref.siid}.{ref.aiid} nie powiodła się: {err}"
-            ) from err
+            raise X20MaxError(_action_error_message(ref, err)) from err
         self._schedule_delayed_refresh()
         return result.get("out") or []
+
+    def active_fault_codes(self) -> list[int]:
+        """Return non-zero fault codes from 2.66, ignoring malformed items."""
+        raw = self.value_for_property(FAULTS_PROPERTY)
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+        except (TypeError, ValueError):
+            return []
+        faults = data.get("fault", []) if isinstance(data, dict) else []
+        if not isinstance(faults, list):
+            return []
+        codes: list[int] = []
+        for value in faults:
+            try:
+                code = int(value)
+            except (TypeError, ValueError):
+                continue
+            if code != 0:
+                codes.append(code)
+        return codes
 
     def rooms(self) -> list[dict[str, Any]]:
         """Return exact X20 Max room IDs and labels."""
@@ -497,25 +636,65 @@ class X20MaxController:
         result["angle"] = int(angle) if angle.is_integer() else angle
         return result
 
-    def resolve_rooms(self, values: Iterable[int | str]) -> list[int]:
-        known = self.rooms()
+    async def async_ensure_rooms(self) -> list[dict[str, Any]]:
+        """Return the room list, reading 2.16 again when it is missing.
+
+        Room IDs are only sent to the robot when they can be checked against
+        the active map; an unloaded, cleared or switched map is an error.
+        """
+        rooms = self.rooms()
+        if rooms:
+            return rooms
+        try:
+            values = await self.cloud.async_get_properties(
+                self.did, (ROOMS_PROPERTY,)
+            )
+        except X20MaxCloudError as err:
+            raise X20MaxError(
+                translation_domain=DOMAIN,
+                translation_key="room_map_unavailable",
+            ) from err
+        self._values.update(values)
+        rooms = self.rooms()
+        if not rooms:
+            raise X20MaxError(
+                translation_domain=DOMAIN,
+                translation_key="room_map_unavailable",
+            )
+        return rooms
+
+    async def async_resolve_rooms(self, values: Iterable[int | str]) -> list[int]:
+        """Translate room IDs/names to IDs present on the active map."""
+        values = list(values)
+        if not values:
+            raise X20MaxValidationError(
+                translation_domain=DOMAIN,
+                translation_key="no_rooms",
+            )
+        known = await self.async_ensure_rooms()
         by_name = {item["name"].casefold(): item["id"] for item in known}
         known_ids = {item["id"] for item in known}
         resolved: list[int] = []
         for value in values:
             if isinstance(value, int) or str(value).strip().isdigit():
                 room_id = int(value)
-                if known_ids and room_id not in known_ids:
-                    raise X20MaxError(f"Nieznane ID pomieszczenia: {room_id}")
+                if room_id not in known_ids:
+                    raise X20MaxValidationError(
+                        translation_domain=DOMAIN,
+                        translation_key="unknown_room_id",
+                        translation_placeholders={"room_id": str(room_id)},
+                    )
             else:
                 key = str(value).strip().casefold()
                 if key not in by_name:
-                    raise X20MaxError(f"Nieznana nazwa pomieszczenia: {value}")
+                    raise X20MaxValidationError(
+                        translation_domain=DOMAIN,
+                        translation_key="unknown_room_name",
+                        translation_placeholders={"room_name": str(value)},
+                    )
                 room_id = by_name[key]
             if room_id not in resolved:
                 resolved.append(room_id)
-        if not resolved:
-            raise X20MaxError("Trzeba podać co najmniej jedno pomieszczenie")
         return resolved
 
     async def async_clean_rooms(
@@ -529,7 +708,7 @@ class X20MaxController:
         route: str | None = None,
     ) -> None:
         """Apply optional preferences and start one or many room IDs."""
-        room_ids = self.resolve_rooms(rooms)
+        room_ids = await self.async_resolve_rooms(rooms)
         settings: list[tuple[PropertyRef, Any]] = []
         if mode is not None:
             settings.append((PropertyRef(2, 4), CLEANING_MODES[mode]))
@@ -543,14 +722,109 @@ class X20MaxController:
             settings.append((PropertyRef(2, 74), ROUTE_LEVELS[route]))
         for ref, value in settings:
             await self.async_set_property(ref, value)
-        await self.async_action(
-            ActionRef(2, 16),
-            [
-                {
-                    "piid": 15,
-                    "value": json.dumps(room_ids, separators=(",", ":")),
-                }
-            ],
+
+        # Fresh baseline for the start check below; the cache may be 30 s old.
+        try:
+            self._values.update(
+                await self.cloud.async_get_properties(
+                    self.did, START_CONFIRM_PROPERTIES
+                )
+            )
+        except X20MaxCloudError as err:
+            _LOGGER.debug("%s: baseline read failed: %s", self.name, err)
+        baseline_status = self._status_int()
+        baseline_task = self.value_for_property(CURRENT_TASK_PROPERTY)
+
+        try:
+            await self.cloud.async_action(
+                self.did,
+                ROOM_CLEAN_ACTION.siid,
+                ROOM_CLEAN_ACTION.aiid,
+                [
+                    {
+                        "piid": 15,
+                        "value": json.dumps(room_ids, separators=(",", ":")),
+                    }
+                ],
+            )
+        except X20MaxActionError as err:
+            if err.code != ROOM_CLEAN_UNCONFIRMED_CODE:
+                raise X20MaxError(
+                    _action_error_message(ROOM_CLEAN_ACTION, err)
+                ) from err
+            await self._async_confirm_room_clean(
+                room_ids, baseline_status, baseline_task
+            )
+        except X20MaxCloudError as err:
+            raise X20MaxError(
+                _action_error_message(ROOM_CLEAN_ACTION, err)
+            ) from err
+        self._schedule_delayed_refresh()
+
+    def _room_clean_started(
+        self,
+        room_ids: list[int],
+        baseline_status: int | None,
+        baseline_task: Any,
+    ) -> bool:
+        """Return True when the cached state proves the requested task runs.
+
+        Two independent proofs are accepted:
+        * the active task (2.40) changed and now lists every requested room;
+        * the robot entered a cleaning status it was not in before the call.
+        An unchanged 2.40 is never trusted, because the robot keeps the
+        previous task there after it finishes.
+        """
+        task = self.value_for_property(CURRENT_TASK_PROPERTY)
+        current = self.current_cleaning() or {}
+        task_rooms = set(current.get("room_ids") or [])
+        if task != baseline_task and set(room_ids) <= task_rooms:
+            return True
+        status = self._status_int()
+        return (
+            status in CLEANING_STATUSES
+            and baseline_status not in CLEANING_STATUSES
+        )
+
+    async def _async_confirm_room_clean(
+        self,
+        room_ids: list[int],
+        baseline_status: int | None,
+        baseline_task: Any,
+    ) -> None:
+        """Poll the robot until the room task is proven to run, else raise."""
+        deadline = time_module.monotonic() + START_CONFIRM_TIMEOUT
+        while time_module.monotonic() < deadline:
+            await asyncio.sleep(START_CONFIRM_INTERVAL)
+            try:
+                values = await self.cloud.async_get_properties(
+                    self.did, START_CONFIRM_PROPERTIES
+                )
+            except X20MaxCloudError as err:
+                _LOGGER.debug("%s: start check failed: %s", self.name, err)
+                continue
+            if not values:
+                continue
+            self._values.update(values)
+            self._notify()
+            if self._room_clean_started(room_ids, baseline_status, baseline_task):
+                return
+            if self._status_int() == ERROR_STATUS:
+                break
+        status = self._status_int()
+        faults = self.active_fault_codes()
+        names = self.describe_room_ids(room_ids)
+        raise X20MaxError(
+            translation_domain=DOMAIN,
+            translation_key="room_clean_not_started",
+            translation_placeholders={
+                "rooms": ", ".join(
+                    f"{name} ({room_id})"
+                    for room_id, name in zip(room_ids, names, strict=False)
+                ),
+                "status": "-" if status is None else str(status),
+                "faults": ", ".join(str(code) for code in faults) or "-",
+            },
         )
 
     async def async_set_dnd(

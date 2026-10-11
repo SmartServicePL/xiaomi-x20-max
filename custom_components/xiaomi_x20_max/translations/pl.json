@@ -8,15 +8,38 @@
         "data": {
           "did": "X20 Max"
         }
+      },
+      "reauth_confirm": {
+        "title": "Ponowne uwierzytelnienie konta Xiaomi",
+        "description": "Xiaomi odrzuciło dane OAuth używane przez tę integrację. Korzysta ona z logowania oficjalnej integracji Xiaomi Home i nie ma własnego logowania.\n\n1. Otwórz Xiaomi Home w Ustawienia → Urządzenia i usługi i zaloguj się ponownie (Zmień konfigurację) tym samym kontem i regionem Xiaomi.\n2. Wróć tutaj i wybierz Zatwierdź, aby zaimportować nowe dane."
       }
     },
     "error": {
-      "invalid_device": "Wybrana encja nie jest robotem Xiaomi Robot Vacuum X20 Max."
+      "invalid_device": "Wybrane urządzenie nie jest robotem Xiaomi Robot Vacuum X20 Max.",
+      "reauth_failed": "Xiaomi Home nie ma ważnego logowania dla tego konta. Najpierw zaloguj się ponownie w integracji Xiaomi Home, a potem spróbuj jeszcze raz.",
+      "cannot_connect": "Brak połączenia z Xiaomi Cloud. Spróbuj ponownie później.",
+      "robot_not_found": "Tego robota nie ma na koncie Xiaomi zalogowanym w Xiaomi Home."
     },
     "abort": {
       "already_configured": "Ten robot jest już skonfigurowany.",
       "no_devices": "Na tym koncie nie znaleziono Xiaomi Robot Vacuum X20 Max.",
-      "no_auth": "Niezależne dane OAuth Xiaomi są niedostępne."
+      "no_auth": "Niezależne dane OAuth Xiaomi są niedostępne.",
+      "reauth_successful": "Ponowne uwierzytelnienie zakończyło się powodzeniem."
+    }
+  },
+  "exceptions": {
+    "room_map_unavailable": {
+      "message": "Robot nie przekazał listy pomieszczeń z aktywnej mapy, więc nie można sprawdzić ID pomieszczeń. Poczekaj, aż mapa wczyta się w aplikacji Xiaomi Home, i spróbuj ponownie."
+    },
+    "no_rooms": { "message": "Trzeba podać co najmniej jedno pomieszczenie." },
+    "unknown_room_id": {
+      "message": "Pomieszczenia o ID {room_id} nie ma na aktywnej mapie robota. Aktualne ID pokazuje sensor Pomieszczenia."
+    },
+    "unknown_room_name": {
+      "message": "Pomieszczenia „{room_name}” nie ma na aktywnej mapie robota. Aktualne nazwy pokazuje sensor Pomieszczenia."
+    },
+    "room_clean_not_started": {
+      "message": "Robot nie rozpoczął sprzątania: {rooms} (status MIoT {status}, kody usterek: {faults}). Sprawdź zbiorniki wody, stację i robota w aplikacji Xiaomi Home."
     }
   },
   "entity": {

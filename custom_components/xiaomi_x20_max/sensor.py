@@ -230,9 +230,11 @@ class X20MaxSensor(X20MaxEntity, SensorEntity):
                 faults = json.loads(raw).get("fault", [])
             except (TypeError, ValueError, AttributeError):
                 return raw
-            active = [
-                self._format_fault(int(value)) for value in faults if int(value) != 0
-            ]
+            try:
+                codes = [int(value) for value in faults]
+            except (TypeError, ValueError):
+                return raw
+            active = [self._format_fault(code) for code in codes if code != 0]
             return ", ".join(active) if active else "OK"
         try:
             value = float(raw) * description.scale
@@ -295,6 +297,14 @@ class X20MaxCurrentLocationSensor(X20MaxEntity, SensorEntity):
 
     _attr_translation_key = "current_location"
     _attr_icon = "mdi:map-marker-radius"
+    _unrecorded_attributes = frozenset(
+        {
+            "vacuum_position",
+            "vacuum_position_raw",
+            "map_object",
+            "trajectory_object",
+        }
+    )
 
     _LABELS_EN = {
         "station": "Station",

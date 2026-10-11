@@ -8,15 +8,38 @@
         "data": {
           "did": "X20 Max"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Xiaomi account",
+        "description": "Xiaomi rejected the OAuth grant used by this integration. It uses the sign-in of the official Xiaomi Home integration and has no login of its own.\n\n1. Open Xiaomi Home in Settings → Devices & services and sign in again (Reconfigure) with the same Xiaomi account and region.\n2. Return here and select Submit to import the new grant."
       }
     },
     "error": {
-      "invalid_device": "The selected entity is not a Xiaomi Robot Vacuum X20 Max."
+      "invalid_device": "The selected device is not a Xiaomi Robot Vacuum X20 Max.",
+      "reauth_failed": "Xiaomi Home has no valid sign-in for this account. Sign in again in the Xiaomi Home integration first, then retry.",
+      "cannot_connect": "Cannot connect to Xiaomi Cloud. Try again later.",
+      "robot_not_found": "This robot was not found on the Xiaomi account signed in to Xiaomi Home."
     },
     "abort": {
       "already_configured": "This robot is already configured.",
       "no_devices": "No Xiaomi Robot Vacuum X20 Max was found on this account.",
-      "no_auth": "Independent Xiaomi OAuth credentials are unavailable."
+      "no_auth": "Independent Xiaomi OAuth credentials are unavailable.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "exceptions": {
+    "room_map_unavailable": {
+      "message": "The robot has not reported the room list of its active map, so room IDs cannot be checked. Wait until the map is loaded in the Xiaomi Home app and try again."
+    },
+    "no_rooms": { "message": "At least one room is required." },
+    "unknown_room_id": {
+      "message": "Room ID {room_id} is not on the robot's active map. Check the Rooms sensor for current IDs."
+    },
+    "unknown_room_name": {
+      "message": "Room \"{room_name}\" is not on the robot's active map. Check the Rooms sensor for current names."
+    },
+    "room_clean_not_started": {
+      "message": "The robot did not start cleaning {rooms} (MIoT status {status}, fault codes: {faults}). Check the water tanks, the station and the robot in the Xiaomi Home app."
     }
   },
   "entity": {

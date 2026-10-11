@@ -69,6 +69,7 @@ class ButtonAction:
     ref: ActionRef
     icon: str
     advanced: bool = False
+    enabled_default: bool = True
 
 
 def _enum(
@@ -330,7 +331,13 @@ BUTTON_ACTIONS: tuple[ButtonAction, ...] = (
     ButtonAction("start_mopping", ActionRef(2, 5), "mdi:water"),
     ButtonAction("start_vacuum_and_mop", ActionRef(2, 6), "mdi:robot-vacuum"),
     ButtonAction("resume", ActionRef(2, 8), "mdi:play"),
-    ButtonAction("start_mapping", ActionRef(2, 17), "mdi:map-plus", True),
+    ButtonAction(
+        "start_mapping",
+        ActionRef(2, 17),
+        "mdi:map-plus",
+        True,
+        enabled_default=False,
+    ),
     ButtonAction("empty_dust_bin", ActionRef(2, 18), "mdi:delete-sweep"),
     ButtonAction("wash_mops", ActionRef(2, 19), "mdi:washing-machine"),
     ButtonAction("dry_mops", ActionRef(2, 20), "mdi:weather-windy"),
@@ -346,9 +353,21 @@ BUTTON_ACTIONS: tuple[ButtonAction, ...] = (
     ButtonAction("start_charging", ActionRef(3, 1), "mdi:battery-charging"),
     ButtonAction("identify", ActionRef(6, 1), "mdi:map-marker-radius"),
     ButtonAction("reset_mop", ActionRef(9, 1), "mdi:restart", True),
-    ButtonAction("clear_map", ActionRef(10, 1), "mdi:map-remove", True),
+    ButtonAction(
+        "clear_map",
+        ActionRef(10, 1),
+        "mdi:map-remove",
+        True,
+        enabled_default=False,
+    ),
     ButtonAction("save_map", ActionRef(10, 4), "mdi:content-save", True),
-    ButtonAction("automatic_room_partition", ActionRef(10, 5), "mdi:floor-plan", True),
+    ButtonAction(
+        "automatic_room_partition",
+        ActionRef(10, 5),
+        "mdi:floor-plan",
+        True,
+        enabled_default=False,
+    ),
     ButtonAction("refresh_map_properties", ActionRef(10, 7), "mdi:map-sync", True),
     ButtonAction("reset_main_brush", ActionRef(12, 1), "mdi:restart", True),
     ButtonAction("reset_side_brush", ActionRef(13, 1), "mdi:restart", True),
