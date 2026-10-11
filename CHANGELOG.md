@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 - 2026-10-11
+
+- The integration is now shown as "X20 Max (Smart Service)". The domain
+  `xiaomi_x20_max`, entities, services and settings do not change.
+- The README states that the integration is not affiliated with Xiaomi and is
+  distributed under the Xiaomi Home license for personal, non-commercial use.
+- Removed the donation link.
+
 ## 1.1.0
 
 - Room cleaning start is now verified. The robot answers the room-cleaning

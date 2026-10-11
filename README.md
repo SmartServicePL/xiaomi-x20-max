@@ -1,4 +1,4 @@
-# Xiaomi Robot Vacuum X20 Max for Home Assistant
+# X20 Max (Smart Service) for Home Assistant
 
 <p align="center">
   <img src="custom_components/xiaomi_x20_max/brand/icon@2x.png"
@@ -8,18 +8,18 @@
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
 [![Validate](https://github.com/SmartServicePL/xiaomi-x20-max/actions/workflows/validate.yml/badge.svg)](https://github.com/SmartServicePL/xiaomi-x20-max/actions/workflows/validate.yml)
 
-Unofficial, model-specific Home Assistant integration for
-`xiaomi.vacuum.d109gl` (Xiaomi Robot Vacuum X20 Max).
+Unofficial, model-specific Home Assistant integration for the robot vacuum
+model `xiaomi.vacuum.d109gl`.
+
+Not affiliated with, endorsed by or sponsored by Xiaomi. The integration uses
+the OAuth client of the official Xiaomi Home integration and is distributed
+under the Xiaomi Home license for personal, non-commercial use with Home
+Assistant only (see [LICENSE_XIAOMI.md](LICENSE_XIAOMI.md)). Product names are
+used only to identify the supported device.
 
 [Polska instrukcja](README_PL.md)
 
 Integration prepared by **Smart Service**.
-
-## Support
-
-If this integration helps you, you can support Smart Service:
-
-[Donate via Revolut](https://revolut.me/smartserwis)
 
 ## Features
 

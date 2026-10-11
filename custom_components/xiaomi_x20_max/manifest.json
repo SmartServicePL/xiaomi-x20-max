@@ -1,6 +1,6 @@
 {
   "domain": "xiaomi_x20_max",
-  "name": "Xiaomi Robot Vacuum X20 Max",
+  "name": "X20 Max (Smart Service)",
   "codeowners": ["@SmartServicePL"],
   "config_flow": true,
   "documentation": "https://github.com/SmartServicePL/xiaomi-x20-max",
@@ -8,5 +8,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/SmartServicePL/xiaomi-x20-max/issues",
   "requirements": [],
-  "version": "1.1.0"
+  "version": "1.1.1"
 }
