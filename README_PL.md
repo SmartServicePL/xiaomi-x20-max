@@ -171,6 +171,9 @@ ukrywa identyfikator chmurowy urządzenia i nazwy pomieszczeń.
   używane w automatyzacjach; w razie potrzeby włącz je w ustawieniach encji;
 - brak renderowania mapy;
 - model nie udostępnia procentowego poziomu czystej i brudnej wody;
+- kody usterek nie mają oficjalnej listy. Opis (`fault_code_description`
+  i sensor Błędy) dostają tylko kody o znanym znaczeniu; pozostałe są
+  pokazywane jako numer;
 - część właściwości MIoT jest nieudokumentowana i może zmienić się wraz z
   oprogramowaniem robota.
 

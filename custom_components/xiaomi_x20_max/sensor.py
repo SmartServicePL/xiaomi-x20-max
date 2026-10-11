@@ -24,18 +24,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN, PropertyRef
+from .const import DOMAIN, PropertyRef, fault_description
 from .controller import X20MaxController
 from .entity import X20MaxEntity
 
-
-FAULT_DESCRIPTIONS_EN: dict[int, str] = {
-    210030: "Clean water tank level is low",
-}
-
-FAULT_DESCRIPTIONS_PL: dict[int, str] = {
-    210030: "Poziom wody w zbiorniku na czystą wodę jest niski",
-}
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -243,12 +235,7 @@ class X20MaxSensor(X20MaxEntity, SensorEntity):
         return int(value) if value.is_integer() else round(value, 2)
 
     def _format_fault(self, code: int) -> str:
-        descriptions = (
-            FAULT_DESCRIPTIONS_PL
-            if getattr(self.hass.config, "language", "en").startswith("pl")
-            else FAULT_DESCRIPTIONS_EN
-        )
-        description = descriptions.get(code)
+        description = fault_description(code, self.hass.config.language)
         return f"{code}: {description}" if description else str(code)
 
     @property
@@ -453,18 +440,12 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
         return alerts
 
     def _format_faults(self, faults: list[int]) -> str:
-        descriptions = (
-            FAULT_DESCRIPTIONS_PL
-            if getattr(self.hass.config, "language", "en").startswith("pl")
-            else FAULT_DESCRIPTIONS_EN
-        )
-        prefix = (
-            "Kody usterek" if descriptions is FAULT_DESCRIPTIONS_PL else "Fault codes"
-        )
+        language = self.hass.config.language
+        prefix = "Kody usterek" if language.startswith("pl") else "Fault codes"
         values = [
             (
                 f"{code}: {description}"
-                if (description := descriptions.get(code))
+                if (description := fault_description(code, language))
                 else str(code)
             )
             for code in faults
@@ -484,6 +465,7 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
             "base_station": self.controller.value_for_property(PropertyRef(2, 18)),
             "fault_ids": self.controller.value_for_property(PropertyRef(2, 66)),
             "fault_code": self.controller.fault_code(),
+            "fault_code_description": self.controller.fault_code_description(),
             "notice": self.controller.value_for_property(PropertyRef(2, 72)),
             "action_result": self.controller.value_for_property(PropertyRef(2, 67)),
             "water_check_status": self.controller.value_for_property(

@@ -453,6 +453,46 @@ STATUSES: dict[int, RobotStatus] = {
 # Charging in the station turns these statuses into "docked".
 DOCKED_WHEN_CHARGING = frozenset({1, 2, 3, 9})
 
+# Fault codes (MIoT 2.3 and the 2.66 list) as (English, Polish) texts. Only
+# codes with a known meaning are listed; any other code is shown as a number.
+# - 210030 and 320008: shown by the Xiaomi Home app on the robot itself.
+# - 100010, 210004, 210009, 320002, 320004 and 320013: meaning taken from the
+#   fault names in voska/xiaomi-vacuum (custom_components/xiaomi_vacuum/xiaomi/
+#   types.py), a fork of Tasshack/dreame-vacuum, MIT License,
+#   Copyright (c) 2022 Tasshack.
+FAULT_DESCRIPTIONS: dict[int, tuple[str, str]] = {
+    100010: (
+        "The disposable dust bag has not been replaced for a long time",
+        "Jednorazowy worek na kurz od dawna nie był wymieniany",
+    ),
+    210004: ("The robot is stuck", "Robot utknął"),
+    210009: (
+        "The robot could not return to the station",
+        "Robot nie wrócił do stacji",
+    ),
+    210030: (
+        "Clean water tank level is low",
+        "Poziom wody w zbiorniku na czystą wodę jest niski",
+    ),
+    320002: ("Brush error", "Błąd szczotki"),
+    320004: ("Drive wheel error", "Błąd koła napędowego"),
+    320008: (
+        "Bumper error: check that the bumper can spring back freely; "
+        "something wound into the front brush can also cause it",
+        "Błąd zderzaka: sprawdź, czy zderzak może się prawidłowo odbić; "
+        "przyczyną może być też coś wkręconego w przednią szczotkę",
+    ),
+    320013: ("The mop pad holder is stuck", "Uchwyt padów mopa jest zablokowany"),
+}
+
+
+def fault_description(code: int, language: str | None) -> str | None:
+    """Return the text of a known fault code in Polish or English."""
+    texts = FAULT_DESCRIPTIONS.get(code)
+    if texts is None:
+        return None
+    return texts[1] if (language or "").startswith("pl") else texts[0]
+
 # Every readable property used by the dedicated X20 Max entities.  The raw
 # services remain available for model properties and actions not represented
 # by a friendly entity.

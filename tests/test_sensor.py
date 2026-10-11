@@ -146,3 +146,41 @@ async def test_fault_code_from_2_3_is_exposed(hass, cloud, loaded) -> None:
     assert vacuum.attributes["fault_code"] == 210014
     await refresh(hass, cloud, loaded, {PropertyRef(2, 3): "x"})
     assert hass.states.get(ALERTS).attributes["fault_code"] is None
+
+
+@pytest.mark.parametrize(
+    ("language", "code", "expected"),
+    [
+        ("en", 320008, "Bumper error: check that the bumper can spring back freely; "
+         "something wound into the front brush can also cause it"),
+        ("pl", 320008, "Błąd zderzaka: sprawdź, czy zderzak może się prawidłowo "
+         "odbić; przyczyną może być też coś wkręconego w przednią szczotkę"),
+        ("pl", 210030, "Poziom wody w zbiorniku na czystą wodę jest niski"),
+        ("en", 320002, "Brush error"),
+        ("en", 100008, "100008"),  # sprzeczne źródła: tylko numer
+        ("en", 0, None),
+    ],
+)
+async def test_fault_code_description(
+    hass, cloud, loaded, language, code, expected
+) -> None:
+    hass.config.language = language
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 3): code})
+    assert hass.states.get(ALERTS).attributes["fault_code_description"] == expected
+    vacuum = hass.states.get("vacuum.stefan_x20_max_control")
+    assert vacuum.attributes["fault_code_description"] == expected
+
+
+async def test_fault_list_uses_the_same_texts(hass, cloud, loaded) -> None:
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[320004,210017]}'})
+    assert hass.states.get(FAULTS).state == "320004: Drive wheel error, 210017"
+
+
+def test_every_known_fault_has_both_languages() -> None:
+    from custom_components.xiaomi_x20_max.const import FAULT_DESCRIPTIONS
+
+    assert set(FAULT_DESCRIPTIONS) == {
+        100010, 210004, 210009, 210030, 320002, 320004, 320008, 320013
+    }
+    for english, polish in FAULT_DESCRIPTIONS.values():
+        assert english and polish and english != polish

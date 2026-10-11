@@ -37,6 +37,7 @@ from .const import (
     WATER_LEVELS,
     ActionRef,
     PropertyRef,
+    fault_description,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -341,6 +342,13 @@ class X20MaxController:
             return int(self.value_for_property(FAULT_CODE_PROPERTY))
         except (TypeError, ValueError):
             return None
+
+    def fault_code_description(self) -> str | None:
+        """Return the text of the 2.3 fault code; an unknown code as a number."""
+        code = self.fault_code()
+        if not code:
+            return None
+        return fault_description(code, self.hass.config.language) or str(code)
 
     def active_fault_codes(self) -> list[int]:
         """Return non-zero fault codes from 2.66, ignoring malformed items."""

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.5 - 2026-10-11
+
+- New `fault_code_description` attribute next to `fault_code` on the vacuum
+  entity and the station alerts sensor, in Polish or English. An unknown code
+  is shown as a number.
+- Fault texts for `320008` (bumper error; confirmed on the robot, the cause
+  can also be something wound into the front brush) and `100010`, `210004`,
+  `210009`, `320002`, `320004`, `320013` (meaning from the fault names in
+  voska/xiaomi-vacuum, MIT License). The Faults sensor and station alerts use
+  the same texts.
+
 ## 1.1.4 - 2026-10-11
 
 - New `fault_code` attribute on the vacuum entity and the station alerts

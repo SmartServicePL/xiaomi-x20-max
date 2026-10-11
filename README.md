@@ -179,6 +179,9 @@ Diagnostics redact the cloud device ID and room names.
   Enable them in the entity settings when needed.
 - No map rendering.
 - The device does not expose continuous clean/dirty-water percentages.
+- Fault codes have no official list. Only codes with a known meaning get a
+  text (`fault_code_description` and the Faults sensor); any other code is
+  shown as a number.
 - Some MIoT properties are undocumented and can change with firmware.
 
 The raw `set_property` and `execute_action` services are intended for advanced
