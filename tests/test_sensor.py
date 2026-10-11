@@ -130,3 +130,19 @@ async def test_position_with_room_is_exact(hass, cloud, loaded) -> None:
     sensor = hass.states.get(LOCATION)
     assert sensor.state == "Korytarz"
     assert sensor.attributes["confidence"] == "exact"
+
+
+async def test_fault_code_from_2_3_is_exposed(hass, cloud, loaded) -> None:
+    """Pojedynczy kod usterki (2.3) obok listy z 2.66, do porównania w testach."""
+    assert hass.states.get(ALERTS).attributes["fault_code"] is None
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 3): 210014, PropertyRef(2, 66): '{"fault":[210014]}'},
+    )
+    assert hass.states.get(ALERTS).attributes["fault_code"] == 210014
+    vacuum = hass.states.get("vacuum.stefan_x20_max_control")
+    assert vacuum.attributes["fault_code"] == 210014
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 3): "x"})
+    assert hass.states.get(ALERTS).attributes["fault_code"] is None

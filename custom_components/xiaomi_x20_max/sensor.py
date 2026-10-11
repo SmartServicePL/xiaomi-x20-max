@@ -483,6 +483,7 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
             "problem": "; ".join(alerts) if alerts else None,
             "base_station": self.controller.value_for_property(PropertyRef(2, 18)),
             "fault_ids": self.controller.value_for_property(PropertyRef(2, 66)),
+            "fault_code": self.controller.fault_code(),
             "notice": self.controller.value_for_property(PropertyRef(2, 72)),
             "action_result": self.controller.value_for_property(PropertyRef(2, 67)),
             "water_check_status": self.controller.value_for_property(

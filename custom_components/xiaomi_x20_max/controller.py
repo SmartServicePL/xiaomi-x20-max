@@ -61,6 +61,7 @@ STATUS_PROPERTY = PropertyRef(2, 2)
 ROOMS_PROPERTY = PropertyRef(2, 16)
 CURRENT_TASK_PROPERTY = PropertyRef(2, 40)
 FAULTS_PROPERTY = PropertyRef(2, 66)
+FAULT_CODE_PROPERTY = PropertyRef(2, 3)
 ROOM_CLEAN_ACTION = ActionRef(2, 16)
 # Generic MIoT "operation failed" code. Firmware 4.5.6_0406 returns it for
 # accepted room cleaning too, but also for real refusals (no clean water,
@@ -329,6 +330,17 @@ class X20MaxController:
             raise X20MaxError(_action_error_message(ref, err)) from err
         self._schedule_delayed_refresh()
         return result.get("out") or []
+
+    def fault_code(self) -> int | None:
+        """Return the single fault code from 2.3 (0 means no fault).
+
+        The model spec only gives its range (0-420000); it is exposed next to
+        the fault list from 2.66 so both can be compared on real faults.
+        """
+        try:
+            return int(self.value_for_property(FAULT_CODE_PROPERTY))
+        except (TypeError, ValueError):
+            return None
 
     def active_fault_codes(self) -> list[int]:
         """Return non-zero fault codes from 2.66, ignoring malformed items."""

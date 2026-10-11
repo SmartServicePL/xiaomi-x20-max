@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.4 - 2026-10-11
+
+- New `fault_code` attribute on the vacuum entity and the station alerts
+  sensor: the single fault code reported by the robot (MIoT 2.3, `0` means no
+  fault), next to the fault list from 2.66. It helps to identify fault codes
+  that have no description yet.
+
 ## 1.1.3 - 2026-10-11
 
 - Vacuum state while the station washes the mops (MIoT status 7) is now

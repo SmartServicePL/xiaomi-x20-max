@@ -167,6 +167,7 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
             "location_source": current_location.get("source"),
             "location_confidence": current_location.get("confidence"),
             "faults": self.controller.value_for_property(PropertyRef(2, 66)),
+            "fault_code": self.controller.fault_code(),
             "dnd_start": dnd.get("start"),
             "dnd_end": dnd.get("end"),
         }
