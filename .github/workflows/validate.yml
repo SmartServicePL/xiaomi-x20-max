@@ -35,3 +35,15 @@ jobs:
         run: >-
           diff custom_components/xiaomi_x20_max/strings.json
           custom_components/xiaomi_x20_max/translations/en.json
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install test requirements
+        run: pip install -r requirements_test.txt
+      - name: Pytest
+        run: pytest -q

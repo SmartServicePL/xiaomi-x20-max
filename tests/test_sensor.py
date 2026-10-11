@@ -1,0 +1,132 @@
+"""Sensory: usterki, alarmy stacji, pomieszczenia, aktualna lokalizacja."""
+
+from __future__ import annotations
+
+import json
+
+import pytest
+
+from custom_components.xiaomi_x20_max.const import PropertyRef
+
+from .conftest import DID, controller_of
+
+FAULTS = "sensor.stefan_x20_max_faults"
+ALERTS = "sensor.stefan_x20_max_station_alerts"
+ROOMS = "sensor.stefan_x20_max_rooms"
+LOCATION = "sensor.stefan_x20_max_current_location"
+
+
+async def refresh(hass, cloud, loaded, values: dict[PropertyRef, object]) -> None:
+    cloud.values[DID].update(values)
+    await controller_of(hass, loaded).async_refresh()
+    await hass.async_block_till_done()
+
+
+async def test_no_faults(hass, loaded) -> None:
+    assert hass.states.get(FAULTS).state == "OK"
+    alerts = hass.states.get(ALERTS)
+    assert alerts.state == "OK"
+    assert alerts.attributes["problem"] is None
+
+
+async def test_known_fault_is_described(hass, cloud, loaded) -> None:
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[0,210030]}'})
+    assert hass.states.get(FAULTS).state == "210030: Clean water tank level is low"
+    alerts = hass.states.get(ALERTS)
+    assert alerts.state == "Problem"
+    assert alerts.attributes["problem"] == (
+        "Fault codes: 210030: Clean water tank level is low"
+    )
+
+
+async def test_fault_description_follows_language(hass, cloud, loaded) -> None:
+    hass.config.language = "pl"
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[210030]}'})
+    assert hass.states.get(FAULTS).state == (
+        "210030: Poziom wody w zbiorniku na czystą wodę jest niski"
+    )
+
+
+async def test_unknown_fault_shows_the_code(hass, cloud, loaded) -> None:
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[210014]}'})
+    assert hass.states.get(FAULTS).state == "210014"
+
+
+async def test_malformed_faults_do_not_break_the_sensor(hass, cloud, loaded) -> None:
+    raw = '{"fault":["abc", 210030]}'
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): raw})
+    assert hass.states.get(FAULTS).state == raw
+    assert controller_of(hass, loaded).active_fault_codes() == [210030]
+
+
+async def test_water_check_failure_is_an_alert(hass, cloud, loaded) -> None:
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 54): 3})
+    assert hass.states.get(ALERTS).attributes["alerts"] == [
+        "Water system check failed"
+    ]
+
+
+async def test_rooms_sensor(hass, loaded) -> None:
+    state = hass.states.get(ROOMS)
+    assert state.state == "Przedsionek, Kuchnia, Korytarz"
+    assert state.attributes["by_id"] == {
+        "12": "Przedsionek",
+        "13": "Kuchnia",
+        "14": "Korytarz",
+    }
+    assert state.attributes["room_count"] == 3
+
+
+async def test_room_without_name_gets_a_label(hass, cloud, loaded) -> None:
+    rooms = {"rooms": [{"id": 15, "name": ""}]}
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 16): json.dumps(rooms)})
+    assert hass.states.get(ROOMS).state == "Pokój 15"
+
+
+@pytest.mark.parametrize(
+    ("status", "task", "state", "location"),
+    [
+        (2, "", "Station", "station"),
+        (7, json.dumps({"rooms": [12, 13]}), "Washing mops", "washing_mops"),
+        (20, json.dumps({"rooms": [12, 13]}), "Returning to station", "returning"),
+        (14, "", "Station working", "station_working"),
+        (5, "", "Paused", "paused"),
+        (4, json.dumps({"rooms": [12, 13]}), "Unknown", "unknown"),
+        (4, json.dumps({"rooms": [13]}), "Kuchnia", "room"),
+    ],
+)
+async def test_location(hass, cloud, loaded, status, task, state, location) -> None:
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 2): status, PropertyRef(2, 40): task, PropertyRef(3, 2): 0},
+    )
+    sensor = hass.states.get(LOCATION)
+    assert sensor.state == state
+    assert sensor.attributes["location"] == location
+    assert sensor.attributes["miot_status"] == status
+
+
+async def test_single_room_task_is_marked_as_assumed(hass, cloud, loaded) -> None:
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 2): 4, PropertyRef(2, 40): json.dumps({"rooms": [13]})},
+    )
+    attributes = hass.states.get(LOCATION).attributes
+    assert attributes["confidence"] == "assumed"
+    assert attributes["source"] == "single_room_cleaning_task"
+
+
+async def test_position_with_room_is_exact(hass, cloud, loaded) -> None:
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 2): 4, PropertyRef(10, 4): json.dumps({"room_id": 14})},
+    )
+    sensor = hass.states.get(LOCATION)
+    assert sensor.state == "Korytarz"
+    assert sensor.attributes["confidence"] == "exact"
