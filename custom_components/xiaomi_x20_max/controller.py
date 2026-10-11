@@ -61,7 +61,11 @@ ROOM_CLEAN_ACTION = ActionRef(2, 16)
 # the robot state instead of being trusted either way.
 ROOM_CLEAN_UNCONFIRMED_CODE = -704083036
 START_CONFIRM_PROPERTIES = (STATUS_PROPERTY, CURRENT_TASK_PROPERTY, FAULTS_PROPERTY)
-START_CONFIRM_TIMEOUT = 30
+# With mopping the robot first washes its mops in the station (status 7) and
+# only then leaves (status 4), which takes about 3 minutes. The previous task
+# often stays in 2.40 after it finished, so a repeated start with the same
+# rooms can only be proven by the cleaning status.
+START_CONFIRM_TIMEOUT = 300
 START_CONFIRM_INTERVAL = 3
 
 
@@ -809,7 +813,12 @@ class X20MaxController:
             self._notify()
             if self._room_clean_started(room_ids, baseline_status, baseline_task):
                 return
-            if self._status_int() == ERROR_STATUS:
+            status = self._status_int()
+            # A refusal (e.g. 210030, no clean water) pauses the robot with a
+            # fault within seconds; there is no need to wait any longer.
+            if status == ERROR_STATUS or (
+                status in PAUSED_STATUSES and self.active_fault_codes()
+            ):
                 break
         status = self._status_int()
         faults = self.active_fault_codes()

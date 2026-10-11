@@ -100,9 +100,11 @@ fails instead of sending unchecked IDs.
 The action waits until the start is confirmed. The robot answers with a
 generic MIoT result that does not tell whether it started, so in that case
 the integration reads the robot status and the active task for up to
-30 seconds. If the robot does not start (for example no clean water or a
-station fault), the action fails with an error that lists the MIoT status and
-fault codes, so automations can react to it.
+5 minutes, because with mopping the robot first washes its mops in the
+station for about 3 minutes. If the robot does not start (for example no
+clean water or a station fault), the action fails as soon as the robot
+pauses with a fault code. The error lists the MIoT status and fault codes, so
+automations can react to it.
 
 `mode`, `suction`, `water_level`, `passes` and `route` change the robot's
 global settings and stay in effect after the run. `vacuum.start`,

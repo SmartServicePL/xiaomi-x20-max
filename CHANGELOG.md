@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.2 - 2026-10-11
+
+- Room cleaning start confirmation waits up to 5 minutes instead of 30
+  seconds. With mopping the robot first washes its mops in the station for
+  about 3 minutes, and the previous task often stays in the active task
+  property after it finished, so a repeated start with the same rooms was
+  reported as failed although the robot started.
+- A refusal (for example `210030`, low clean water) is still reported at once:
+  the check stops as soon as the robot pauses with a fault code.
+
 ## 1.1.1 - 2026-10-11
 
 - The integration is now shown as "X20 Max (Smart Service)". The domain

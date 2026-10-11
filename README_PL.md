@@ -90,10 +90,11 @@ się błędem zamiast wysłać niesprawdzone ID.
 
 Akcja czeka na potwierdzenie startu. Robot odpowiada ogólnym kodem MIoT,
 który nie mówi, czy sprzątanie ruszyło, więc w takim przypadku integracja
-do 30 sekund odczytuje status robota i aktywne zadanie. Jeśli robot nie
+do 5 minut odczytuje status robota i aktywne zadanie, bo przy mopowaniu
+robot najpierw przez około 3 minuty myje mopy w stacji. Jeśli robot nie
 ruszy (np. brak czystej wody albo problem ze stacją), akcja kończy się
-błędem ze statusem MIoT i kodami usterek, na który automatyzacja może
-zareagować.
+błędem od razu, gdy robot zatrzyma się z kodem usterki. Błąd podaje status
+MIoT i kody usterek, więc automatyzacja może na niego zareagować.
 
 `mode`, `suction`, `water_level`, `passes` i `route` zmieniają globalne
 ustawienia robota i zostają po zakończeniu sprzątania. `vacuum.start`,
