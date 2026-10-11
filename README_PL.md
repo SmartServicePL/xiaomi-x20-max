@@ -14,7 +14,7 @@ Integracja przygotowana przez **Smart Service**.
 
 Jeśli ta integracja Ci pomaga, możesz wesprzeć Smart Service:
 
-[Donate via Revolut](https://revolut.me/smartserwis)
+[Wesprzyj przez Revolut](https://revolut.me/smartserwis)
 
 ## Funkcje
 
@@ -22,11 +22,13 @@ Jeśli ta integracja Ci pomaga, możesz wesprzeć Smart Service:
 - ID i nazwy pomieszczeń z aktualnej mapy;
 - sensor aktualnej lokalizacji z ostrożnym wykrywaniem pokoju, jeśli robot
   udostępni dane pozycji;
-- sprzątanie jednego lub wielu pomieszczeń po ID albo nazwie;
+- sprzątanie jednego lub wielu pomieszczeń po ID albo nazwie oraz obsługa
+  `vacuum.clean_area`;
 - tryb pracy, moc, ilość wody, 1–3 przejazdy i wybór trasy;
 - bateria, historia, błędy oraz trwałość materiałów eksploatacyjnych;
 - ustawienia dywanów, przeszkód, detergentu i trybu DND;
 - przyciski mapowania oraz zerowania liczników;
+- zaawansowane usługi surowych właściwości i akcji MIoT;
 - polskie i angielskie tłumaczenie.
 
 ## Wymagania
@@ -50,6 +52,21 @@ Jeśli ta integracja Ci pomaga, możesz wesprzeć Smart Service:
 Jeśli pojawi się błąd OAuth, najpierw skonfiguruj lub przeładuj oficjalną
 integrację Xiaomi Home, a następnie spróbuj ponownie.
 
+### Instalacja ręczna
+
+Skopiuj katalog `custom_components/xiaomi_x20_max` do katalogu
+`custom_components` w konfiguracji Home Assistant, uruchom HA ponownie i dodaj
+integrację z interfejsu.
+
+### Ponowne uwierzytelnienie
+
+Integracja nie ma własnego logowania do Xiaomi — korzysta z logowania
+oficjalnej integracji Xiaomi Home. Gdy Xiaomi odrzuci dane OAuth, integracja
+najpierw sama pobiera nowsze dane z Xiaomi Home. Jeśli to niemożliwe,
+Home Assistant pokaże **Ponowne uwierzytelnienie** dla X20 Max: zaloguj się
+ponownie w Xiaomi Home (to samo konto i region), a potem otwórz ponowne
+uwierzytelnienie X20 Max i wybierz **Zatwierdź**.
+
 ## Sprzątanie pomieszczeń
 
 ```yaml
@@ -66,23 +83,97 @@ data:
   route: careful
 ```
 
-ID i nazwy są dostępne w sensorze **Pomieszczenia**.
+ID i nazwy są dostępne w sensorze **Pomieszczenia** i w atrybutach encji
+odkurzacza. `rooms` przyjmuje ID, dokładne nazwy albo ich mieszankę. ID są
+sprawdzane z aktywną mapą robota; jeśli mapa nie jest wczytana, akcja kończy
+się błędem zamiast wysłać niesprawdzone ID.
+
+Akcja czeka na potwierdzenie startu. Robot odpowiada ogólnym kodem MIoT,
+który nie mówi, czy sprzątanie ruszyło, więc w takim przypadku integracja
+do 30 sekund odczytuje status robota i aktywne zadanie. Jeśli robot nie
+ruszy (np. brak czystej wody albo problem ze stacją), akcja kończy się
+błędem ze statusem MIoT i kodami usterek, na który automatyzacja może
+zareagować.
+
+`mode`, `suction`, `water_level`, `passes` i `route` zmieniają globalne
+ustawienia robota i zostają po zakończeniu sprzątania. `vacuum.start`,
+`vacuum.clean_area` i harmonogramy w aplikacji Xiaomi Home używają tych
+bieżących ustawień, dlatego w każdej automatyzacji, która od nich zależy,
+podawaj je jawnie.
+
+## Sprzątanie obszarów (Home Assistant 2026.3+)
+
+Encja odkurzacza obsługuje `vacuum.clean_area`. Obszary Home Assistant
+przypisz do pomieszczeń robota w oknie ustawień encji odkurzacza X20 Max.
+`clean_area` korzysta z tego samego sprawdzania pomieszczeń i potwierdzania
+startu co `clean_rooms` oraz z bieżącego trybu i mocy ssania robota.
+
+Gdy zmienią się pomieszczenia robota (nowa mapa, podział pokoi, przełączenie
+mapy), Home Assistant pokaże zgłoszenie naprawy; otwórz je i przypisz
+obszary ponownie.
+
+## Akcje stacji
+
+```yaml
+action: xiaomi_x20_max.station_action
+data:
+  entity_id: vacuum.moj_x20_max_sterowanie
+  action: wash_mops
+```
+
+Dostępne akcje: `empty`, `wash_mops`, `dry_mops`, `leave_station`,
+`stop_washing`, `stop_drying` i `return_to_wash`.
+
+## Blueprint powiadomień serwisowych
+
+Opcjonalny blueprint wysyła powiadomienia o problemach stacji, stanie błędu,
+niedostępności robota, detergencie, mopach, filtrze, szczotkach i worku na
+kurz. Utwórz z niego jedną automatyzację dla każdego robota i wybierz własną
+akcję powiadomienia. Powiadomienia przychodzą tylko przy rzeczywistych
+zmianach, a nie po powrocie wartości po przerwie w chmurze, restarcie lub
+przeładowaniu. Język powiadomień (polski lub angielski) wybiera się w
+blueprincie. Alarm materiału eksploatacyjnego przychodzi przy przekroczeniu
+progu, więc wartość, która jest już poniżej progu w chwili tworzenia
+automatyzacji, nie wyśle powiadomienia.
+
+[Importuj blueprint](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FSmartServicePL%2Fxiaomi-x20-max%2Fblob%2Fmain%2Fblueprints%2Fautomation%2FSmartServicePL%2Fx20_max_maintenance.yaml)
 
 ## Prywatność
 
 Integracja jednorazowo importuje grant OAuth oficjalnej integracji Xiaomi
 Home, zapisuje go we własnym magazynie HA i później samodzielnie odświeża.
-Nie zapisuje hasła konta ani lokalnych tokenów urządzeń. Diagnostyka ukrywa
-identyfikator chmurowy i nazwy pomieszczeń.
+Nie zapisuje hasła konta ani lokalnych tokenów urządzeń. Dane logowania
+zostają w Home Assistant i są wysyłane tylko do Xiaomi Cloud. Diagnostyka
+ukrywa identyfikator chmurowy urządzenia i nazwy pomieszczeń.
 
 ## Ograniczenia
 
 - komunikacja odbywa się przez chmurę Xiaomi;
 - obsługiwane jest jedno konto/region Xiaomi na instalację HA;
-- brak renderowania mapy;
 - dokładne wskazanie aktualnego pokoju zależy od tego, czy Xiaomi Cloud zwróci
   dane pozycji robota. Jeśli chmura zwraca tylko kolejkę sprzątania, sensor
   lokalizacji pokazuje `Nieznane`, a kolejkę udostępnia w atrybutach;
-- model nie udostępnia procentowego poziomu czystej i brudnej wody.
+- robot jest niedostępny, gdy Xiaomi Cloud nie odpowiada przez 3 minuty albo
+  Xiaomi zgłasza robota jako offline (sprawdzane co 5 minut);
+- przyciski **Usuń mapę**, **Automatycznie podziel pomieszczenia** i
+  **Rozpocznij szybkie mapowanie** są domyślnie wyłączone, bo zmieniają ID pomieszczeń
+  używane w automatyzacjach; w razie potrzeby włącz je w ustawieniach encji;
+- brak renderowania mapy;
+- model nie udostępnia procentowego poziomu czystej i brudnej wody;
+- część właściwości MIoT jest nieudokumentowana i może zmienić się wraz z
+  oprogramowaniem robota.
 
-Projekt nie jest powiązany z Xiaomi.
+Usługi `set_property` i `execute_action` są przeznaczone dla zaawansowanych
+użytkowników. Błędne wartości mogą zmienić mapy lub ustawienia urządzenia.
+
+## Zgłaszanie problemów
+
+Otwórz [zgłoszenie](https://github.com/SmartServicePL/xiaomi-x20-max/issues)
+i dołącz diagnostykę Home Assistant. Nigdy nie dołączaj plików `.storage`
+ani tokenów.
+
+## Licencja i zastrzeżenia
+
+Licencja MIT. Projekt nie jest powiązany z Xiaomi. Interfejs Xiaomi Cloud
+jest używany wyłącznie w prywatnych, niekomercyjnych instalacjach Home
+Assistant; zobacz [LICENSE_XIAOMI.md](LICENSE_XIAOMI.md).

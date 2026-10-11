@@ -59,6 +59,15 @@ If this integration helps you, you can support Smart Service:
 If setup reports that OAuth credentials are unavailable, configure or reload
 the official Xiaomi Home integration first and retry.
 
+### Re-authentication
+
+This integration has no Xiaomi login of its own; it uses the sign-in of the
+official Xiaomi Home integration. If Xiaomi rejects the OAuth grant, the
+integration first imports a newer grant from Xiaomi Home automatically. If
+that is not possible, Home Assistant shows **Re-authenticate** for the
+X20 Max: sign in again in Xiaomi Home (same account and region), then open
+the X20 Max re-authentication and select **Submit**.
+
 ## Manual installation
 
 Copy `custom_components/xiaomi_x20_max` into the `custom_components`
@@ -84,7 +93,31 @@ data:
   route: careful
 ```
 
-`rooms` accepts IDs, exact room names, or a mixture of both.
+`rooms` accepts IDs, exact room names, or a mixture of both. IDs are checked
+against the robot's active map; if the map has not been loaded, the action
+fails instead of sending unchecked IDs.
+
+The action waits until the start is confirmed. The robot answers with a
+generic MIoT result that does not tell whether it started, so in that case
+the integration reads the robot status and the active task for up to
+30 seconds. If the robot does not start (for example no clean water or a
+station fault), the action fails with an error that lists the MIoT status and
+fault codes, so automations can react to it.
+
+`mode`, `suction`, `water_level`, `passes` and `route` change the robot's
+global settings and stay in effect after the run. `vacuum.start`,
+`vacuum.clean_area` and schedules in the Xiaomi Home app use those current
+settings, so pass them explicitly in every automation that depends on them.
+
+## Clean areas (Home Assistant 2026.3+)
+
+The vacuum entity supports `vacuum.clean_area`. Assign Home Assistant areas
+to robot rooms in the settings dialog of the X20 Max vacuum entity.
+`clean_area` uses the same room check and start confirmation as
+`clean_rooms` and the robot's current mode and suction settings.
+
+When the robot's rooms change (new map, room partition, map switching),
+Home Assistant shows a repair issue; open it and assign the areas again.
 
 ## Station actions
 
@@ -102,7 +135,11 @@ Available actions: `empty`, `wash_mops`, `dry_mops`, `leave_station`,
 
 The optional blueprint creates reusable alerts for station faults, detergent,
 mops, filter, brushes and dust bag. Import it once for each robot and select
-your own mobile notification action:
+your own mobile notification action. Notifications are sent only for real
+changes, not when a value reappears after a cloud outage, restart or reload.
+Notification texts can be English or Polish (option in the blueprint).
+Consumable alerts fire when a value crosses its threshold, so a value that is
+already below it when the automation is created does not send an alert.
 
 [Import maintenance blueprint](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FSmartServicePL%2Fxiaomi-x20-max%2Fblob%2Fmain%2Fblueprints%2Fautomation%2FSmartServicePL%2Fx20_max_maintenance.yaml)
 
@@ -123,6 +160,11 @@ Diagnostics redact the cloud device ID and room names.
 - Exact current-room reporting depends on the robot exposing position data. If
   Xiaomi Cloud returns only a cleaning queue, the location sensor reports
   `Unknown` and exposes the queued rooms in attributes.
+- The robot is shown as unavailable when Xiaomi Cloud does not answer for
+  3 minutes or Xiaomi reports the robot offline (checked every 5 minutes).
+- The **Clear map**, **Partition rooms automatically** and **Start quick
+  mapping** buttons are disabled by default: they change room IDs used by automations.
+  Enable them in the entity settings when needed.
 - No map rendering.
 - The device does not expose continuous clean/dirty-water percentages.
 - Some MIoT properties are undocumented and can change with firmware.
