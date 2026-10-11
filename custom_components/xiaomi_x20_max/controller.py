@@ -32,6 +32,7 @@ from .const import (
     MODEL_ACTIONS,
     POLL_PROPERTIES,
     ROUTE_LEVELS,
+    STATUSES,
     SUCTION_LEVELS,
     WATER_LEVELS,
     ActionRef,
@@ -44,10 +45,16 @@ POLL_INTERVAL = timedelta(seconds=30)
 AVAILABLE_GRACE_SECONDS = 180
 MAX_BACKOFF_SECONDS = 300
 ONLINE_CHECK_SECONDS = 300
-STATION_STATUSES = {2, 3, 7, 9, 12, 14}
-RETURNING_STATUSES = {6, 13, 19, 20, 21}
-CLEANING_STATUSES = {4, 16, 17}
-PAUSED_STATUSES = {5, 18}
+CLEANING_STATUSES = frozenset(
+    status
+    for status, meaning in STATUSES.items()
+    if meaning.location == "cleaning"
+)
+PAUSED_STATUSES = frozenset(
+    status
+    for status, meaning in STATUSES.items()
+    if meaning.location == "paused"
+)
 ERROR_STATUS = 15
 
 STATUS_PROPERTY = PropertyRef(2, 2)
@@ -469,32 +476,8 @@ class X20MaxController:
                 "current_cleaning": current_cleaning,
             }
 
-        if status in STATION_STATUSES:
-            location = "station"
-            if status == 7:
-                location = "washing_mops"
-            elif status in (12, 14):
-                location = "station_working"
-            return {
-                "location": location,
-                "source": "miot_status",
-                "confidence": "status",
-                "miot_status": status,
-                "vacuum_position": position,
-                "current_cleaning": current_cleaning,
-            }
-
-        if status in RETURNING_STATUSES:
-            return {
-                "location": "returning",
-                "source": "miot_status",
-                "confidence": "status",
-                "miot_status": status,
-                "vacuum_position": position,
-                "current_cleaning": current_cleaning,
-            }
-
-        if status in CLEANING_STATUSES:
+        location = STATUSES[status].location if status in STATUSES else "idle"
+        if location == "cleaning":
             room_ids = (
                 current_cleaning.get("room_ids", [])
                 if isinstance(current_cleaning, dict)
@@ -525,26 +508,8 @@ class X20MaxController:
                 "current_cleaning": current_cleaning,
             }
 
-        if status in PAUSED_STATUSES:
-            return {
-                "location": "paused",
-                "source": "miot_status",
-                "confidence": "status",
-                "miot_status": status,
-                "vacuum_position": position,
-                "current_cleaning": current_cleaning,
-            }
-
-        if status == 10:
-            location = "mapping"
-        elif status == 15:
-            location = "error"
-        elif status is None:
-            location = "unknown"
-        else:
-            location = "idle"
         return {
-            "location": location,
+            "location": location if status is not None else "unknown",
             "source": "miot_status" if status is not None else "not_available",
             "confidence": "status" if status is not None else "unknown",
             "miot_status": status,
@@ -815,9 +780,13 @@ class X20MaxController:
                 return
             status = self._status_int()
             # A refusal (e.g. 210030, no clean water) pauses the robot with a
-            # fault within seconds; there is no need to wait any longer.
+            # fault within seconds; there is no need to wait any longer. A
+            # robot that was already paused before the call may still show
+            # the old pause for a few seconds, so it gets the full window.
             if status == ERROR_STATUS or (
-                status in PAUSED_STATUSES and self.active_fault_codes()
+                status in PAUSED_STATUSES
+                and baseline_status not in PAUSED_STATUSES
+                and self.active_fault_codes()
             ):
                 break
         status = self._status_int()

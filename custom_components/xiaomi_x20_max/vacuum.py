@@ -16,37 +16,15 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
     CLEANING_MODES,
+    DOCKED_WHEN_CHARGING,
     DOMAIN,
+    STATUSES,
     SUCTION_LEVELS,
     ActionRef,
     PropertyRef,
 )
 from .controller import X20MaxController, X20MaxError
 from .entity import X20MaxEntity
-
-ACTIVITY_MAP = {
-    1: VacuumActivity.IDLE,
-    2: VacuumActivity.DOCKED,
-    3: VacuumActivity.IDLE,
-    4: VacuumActivity.CLEANING,
-    5: VacuumActivity.PAUSED,
-    6: VacuumActivity.RETURNING,
-    7: VacuumActivity.RETURNING,
-    8: VacuumActivity.IDLE,
-    9: VacuumActivity.DOCKED,
-    10: VacuumActivity.CLEANING,
-    11: VacuumActivity.IDLE,
-    12: VacuumActivity.DOCKED,
-    13: VacuumActivity.RETURNING,
-    14: VacuumActivity.DOCKED,
-    15: VacuumActivity.ERROR,
-    16: VacuumActivity.CLEANING,
-    17: VacuumActivity.CLEANING,
-    18: VacuumActivity.PAUSED,
-    19: VacuumActivity.RETURNING,
-    20: VacuumActivity.PAUSED,
-    21: VacuumActivity.RETURNING,
-}
 
 
 async def async_setup_entry(
@@ -121,18 +99,21 @@ class X20MaxVacuum(X20MaxEntity, StateVacuumEntity):
 
     @property
     def activity(self) -> VacuumActivity | None:
-        value = self.controller.value_for_property(PropertyRef(2, 2))
-        status: int | None = None
         try:
-            status = int(value) if value is not None else None
-            charging = int(
-                self.controller.value_for_property(PropertyRef(3, 2))
-            )
-            if charging == 1 and status in (1, 2, 3, 9):
-                return VacuumActivity.DOCKED
-            return ACTIVITY_MAP.get(status) if status is not None else None
+            status = int(self.controller.value_for_property(PropertyRef(2, 2)))
         except (TypeError, ValueError):
-            return ACTIVITY_MAP.get(status) if status is not None else None
+            return None
+        if status in DOCKED_WHEN_CHARGING:
+            try:
+                charging = int(
+                    self.controller.value_for_property(PropertyRef(3, 2))
+                )
+            except (TypeError, ValueError):
+                charging = None
+            if charging == 1:
+                return VacuumActivity.DOCKED
+        meaning = STATUSES.get(status)
+        return meaning.activity if meaning else None
 
     @property
     def fan_speed(self) -> str | None:

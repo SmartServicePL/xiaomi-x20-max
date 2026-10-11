@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from homeassistant.components.vacuum import VacuumActivity
 from homeassistant.const import Platform
 
 DOMAIN = "xiaomi_x20_max"
@@ -408,6 +409,49 @@ WATER_LEVELS: dict[str, int] = {
 }
 
 ROUTE_LEVELS: dict[str, int] = {"quick": 1, "daily": 2, "careful": 3}
+
+
+@dataclass(frozen=True, slots=True)
+class RobotStatus:
+    """Meaning of one value of the robot status property (MIoT 2.2)."""
+
+    activity: VacuumActivity
+    location: str
+
+
+# One table for the vacuum entity (what the robot is doing) and the location
+# sensor (where it is). Statuses 2, 4, 5, 6, 7, 14 and 20 were confirmed in the
+# state history of two robots (firmware 4.5.6_0406): 7 washes the mops in the
+# station before, during and after a task, and 20 drives back to the station
+# to wash them in the middle of a task. As in the Dreame integration for the
+# same robot family, washing during a task counts as cleaning and the trip to
+# the wash as returning. The other values keep their earlier meaning; status 3
+# did not appear in the history.
+STATUSES: dict[int, RobotStatus] = {
+    1: RobotStatus(VacuumActivity.IDLE, "idle"),
+    2: RobotStatus(VacuumActivity.DOCKED, "station"),
+    3: RobotStatus(VacuumActivity.IDLE, "station"),
+    4: RobotStatus(VacuumActivity.CLEANING, "cleaning"),
+    5: RobotStatus(VacuumActivity.PAUSED, "paused"),
+    6: RobotStatus(VacuumActivity.RETURNING, "returning"),
+    7: RobotStatus(VacuumActivity.CLEANING, "washing_mops"),
+    8: RobotStatus(VacuumActivity.IDLE, "idle"),
+    9: RobotStatus(VacuumActivity.DOCKED, "station"),
+    10: RobotStatus(VacuumActivity.CLEANING, "mapping"),
+    11: RobotStatus(VacuumActivity.IDLE, "idle"),
+    12: RobotStatus(VacuumActivity.DOCKED, "station_working"),
+    13: RobotStatus(VacuumActivity.RETURNING, "returning"),
+    14: RobotStatus(VacuumActivity.DOCKED, "station_working"),
+    15: RobotStatus(VacuumActivity.ERROR, "error"),
+    16: RobotStatus(VacuumActivity.CLEANING, "cleaning"),
+    17: RobotStatus(VacuumActivity.CLEANING, "cleaning"),
+    18: RobotStatus(VacuumActivity.PAUSED, "paused"),
+    19: RobotStatus(VacuumActivity.RETURNING, "returning"),
+    20: RobotStatus(VacuumActivity.RETURNING, "returning"),
+    21: RobotStatus(VacuumActivity.RETURNING, "returning"),
+}
+# Charging in the station turns these statuses into "docked".
+DOCKED_WHEN_CHARGING = frozenset({1, 2, 3, 9})
 
 # Every readable property used by the dedicated X20 Max entities.  The raw
 # services remain available for model properties and actions not represented
