@@ -182,6 +182,10 @@ Diagnostics redact the cloud device ID and room names.
 - Fault codes have no official list. Only codes with a known meaning get a
   text (`fault_code_description` and the Faults sensor); any other code is
   shown as a number.
+- `fault_code` is the last fault code the robot reported (MIoT 2.3). It stays
+  after the fault is gone, so use it for diagnostics only.
+  `fault_code_description` has a value only while that fault is active (the
+  code is also in the current fault list); otherwise it is empty.
 - Some MIoT properties are undocumented and can change with firmware.
 
 The raw `set_property` and `execute_action` services are intended for advanced

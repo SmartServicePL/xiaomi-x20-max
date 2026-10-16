@@ -174,6 +174,11 @@ ukrywa identyfikator chmurowy urządzenia i nazwy pomieszczeń.
 - kody usterek nie mają oficjalnej listy. Opis (`fault_code_description`
   i sensor Błędy) dostają tylko kody o znanym znaczeniu; pozostałe są
   pokazywane jako numer;
+- `fault_code` to ostatni kod usterki zgłoszony przez robota (MIoT 2.3).
+  Zostaje po ustąpieniu usterki, więc służy tylko do diagnostyki.
+  `fault_code_description` ma wartość tylko wtedy, gdy ta usterka jest
+  aktywna (kod jest też na bieżącej liście usterek); w przeciwnym razie jest
+  pusty;
 - część właściwości MIoT jest nieudokumentowana i może zmienić się wraz z
   oprogramowaniem robota.
 

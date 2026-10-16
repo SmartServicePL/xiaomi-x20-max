@@ -344,9 +344,14 @@ class X20MaxController:
             return None
 
     def fault_code_description(self) -> str | None:
-        """Return the text of the 2.3 fault code; an unknown code as a number."""
+        """Return the text of the 2.3 fault code while that fault is active.
+
+        2.3 keeps the last reported code after the fault is gone, so the text
+        is only given when the same code is also in the current 2.66 list.
+        An unknown active code is returned as a number.
+        """
         code = self.fault_code()
-        if not code:
+        if not code or code not in self.active_fault_codes():
             return None
         return fault_description(code, self.hass.config.language) or str(code)
 

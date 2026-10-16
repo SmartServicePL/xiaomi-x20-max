@@ -165,11 +165,42 @@ async def test_fault_code_from_2_3_is_exposed(hass, cloud, loaded) -> None:
 async def test_fault_code_description(
     hass, cloud, loaded, language, code, expected
 ) -> None:
+    """Aktywna usterka: kod z 2.3 jest też na bieżącej liście 2.66."""
     hass.config.language = language
-    await refresh(hass, cloud, loaded, {PropertyRef(2, 3): code})
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 3): code, PropertyRef(2, 66): json.dumps({"fault": [code]})},
+    )
     assert hass.states.get(ALERTS).attributes["fault_code_description"] == expected
     vacuum = hass.states.get("vacuum.stefan_x20_max_control")
     assert vacuum.attributes["fault_code_description"] == expected
+
+
+async def test_past_fault_has_no_description(hass, cloud, loaded) -> None:
+    """2.3 trzyma ostatni kod po ustąpieniu usterki (Franek 16.10: 320004)."""
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 3): 320004, PropertyRef(2, 66): '{"fault":[0]}'},
+    )
+    for entity_id in (ALERTS, "vacuum.stefan_x20_max_control"):
+        attributes = hass.states.get(entity_id).attributes
+        assert attributes["fault_code"] == 320004
+        assert attributes["fault_code_description"] is None
+
+
+async def test_description_follows_only_the_2_3_code(hass, cloud, loaded) -> None:
+    """Inna aktywna usterka na 2.66 nie daje opisu ostatniego kodu z 2.3."""
+    await refresh(
+        hass,
+        cloud,
+        loaded,
+        {PropertyRef(2, 3): 320004, PropertyRef(2, 66): '{"fault":[210030]}'},
+    )
+    assert hass.states.get(ALERTS).attributes["fault_code_description"] is None
 
 
 async def test_fault_list_uses_the_same_texts(hass, cloud, loaded) -> None:

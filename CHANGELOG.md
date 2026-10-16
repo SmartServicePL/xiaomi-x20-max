@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.7 - 2026-10-16
+
+- `fault_code_description` has a value only while the fault is active, that
+  is when the `fault_code` is also in the current fault list. Before, it kept
+  describing the last reported fault after it was gone.
+- `fault_code` is unchanged: it is the last fault code the robot reported
+  (MIoT 2.3) and stays after the fault is gone. README says this plainly.
+
 ## 1.1.6 - 2026-10-16
 
 - Fault `320004` now reads "Drive wheel blocked" ("Zablokowane koło jezdne"),
