@@ -455,8 +455,9 @@ DOCKED_WHEN_CHARGING = frozenset({1, 2, 3, 9})
 
 # Fault codes (MIoT 2.3 and the 2.66 list) as (English, Polish) texts. Only
 # codes with a known meaning are listed; any other code is shown as a number.
-# - 210030 and 320008: shown by the Xiaomi Home app on the robot itself.
-# - 100010, 210004, 210009, 320002, 320004 and 320013: meaning taken from the
+# - 210030, 320004 and 320008: shown by the Xiaomi Home app on the robot
+#   itself.
+# - 100010, 210004, 210009, 320002 and 320013: meaning taken from the
 #   fault names in voska/xiaomi-vacuum (custom_components/xiaomi_vacuum/xiaomi/
 #   types.py), a fork of Tasshack/dreame-vacuum, MIT License,
 #   Copyright (c) 2022 Tasshack.
@@ -475,7 +476,7 @@ FAULT_DESCRIPTIONS: dict[int, tuple[str, str]] = {
         "Poziom wody w zbiorniku na czystą wodę jest niski",
     ),
     320002: ("Brush error", "Błąd szczotki"),
-    320004: ("Drive wheel error", "Błąd koła napędowego"),
+    320004: ("Drive wheel blocked", "Zablokowane koło jezdne"),
     320008: (
         "Bumper error: check that the bumper can spring back freely; "
         "something wound into the front brush can also cause it",

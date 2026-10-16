@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.6 - 2026-10-16
+
+- Fault `320004` now reads "Drive wheel blocked" ("Zablokowane koło jezdne"),
+  the text the Xiaomi Home app showed on the robot, instead of the earlier
+  "Drive wheel error".
+
 ## 1.1.5 - 2026-10-11
 
 - New `fault_code_description` attribute next to `fault_code` on the vacuum

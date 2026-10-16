@@ -157,6 +157,7 @@ async def test_fault_code_from_2_3_is_exposed(hass, cloud, loaded) -> None:
          "odbić; przyczyną może być też coś wkręconego w przednią szczotkę"),
         ("pl", 210030, "Poziom wody w zbiorniku na czystą wodę jest niski"),
         ("en", 320002, "Brush error"),
+        ("pl", 320004, "Zablokowane koło jezdne"),
         ("en", 100008, "100008"),  # sprzeczne źródła: tylko numer
         ("en", 0, None),
     ],
@@ -173,7 +174,7 @@ async def test_fault_code_description(
 
 async def test_fault_list_uses_the_same_texts(hass, cloud, loaded) -> None:
     await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[320004,210017]}'})
-    assert hass.states.get(FAULTS).state == "320004: Drive wheel error, 210017"
+    assert hass.states.get(FAULTS).state == "320004: Drive wheel blocked, 210017"
 
 
 def test_every_known_fault_has_both_languages() -> None:
