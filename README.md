@@ -153,6 +153,11 @@ Notification texts can be English or Polish (option in the blueprint).
 Consumable alerts fire when a value crosses its threshold, so a value that is
 already below it when the automation is created does not send an alert.
 
+Each notification has a short title (for example "Cleaning: Station problem")
+and a message whose last line says what to do. The robot name is not in the
+title; your notification action can use `x20_robot_name` (for example in a
+tag or group) next to `x20_title` and `x20_message`.
+
 [Import maintenance blueprint](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FSmartServicePL%2Fxiaomi-x20-max%2Fblob%2Fmain%2Fblueprints%2Fautomation%2FSmartServicePL%2Fx20_max_maintenance.yaml)
 
 ## Authentication and privacy

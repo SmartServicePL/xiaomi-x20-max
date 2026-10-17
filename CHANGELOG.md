@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.9 - 2026-10-17
+
+- Maintenance blueprint: new notification texts in Polish and English. Short
+  titles ("Sprzątanie: Problem ze stacją" / "Cleaning: Station problem",
+  "Błąd robota", "Robot nie odpowiada", "Mało detergentu", "Zużycie
+  elementu") and a message whose last line says what to do. Remaining hours
+  are shown only when the sensor reports them.
+- The robot name is no longer in the title; notification actions can use the
+  new `x20_robot_name` variable. Blueprint input names are unchanged.
+
 ## 1.1.8 - 2026-10-17
 
 - Fault `210014` now has a text, as shown by the Xiaomi Home app on the
