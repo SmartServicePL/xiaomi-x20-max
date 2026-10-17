@@ -398,11 +398,12 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
     _attr_icon = "mdi:alert-circle-check-outline"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
+    # (English, Polish) labels of the texts reported by the robot.
     _TEXT_REFS = (
-        ("action result", PropertyRef(2, 67)),
-        ("message", PropertyRef(2, 72)),
-        ("reminder", PropertyRef(2, 70)),
-        ("station status", PropertyRef(20, 3)),
+        (("Action result", "Wynik akcji"), PropertyRef(2, 67)),
+        (("Message", "Komunikat"), PropertyRef(2, 72)),
+        (("Reminder", "Przypomnienie"), PropertyRef(2, 70)),
+        (("Station status", "Stan stacji"), PropertyRef(20, 3)),
     )
 
     def __init__(self, controller: X20MaxController) -> None:
@@ -410,6 +411,7 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
 
     def _alerts(self) -> list[str]:
         alerts: list[str] = []
+        polish = self.hass.config.language.startswith("pl")
         raw_faults = self.controller.value_for_property(PropertyRef(2, 66))
         try:
             fault_data = (
@@ -421,22 +423,26 @@ class X20MaxStationAlertsSensor(X20MaxEntity, SensorEntity):
                 alerts.append(self._format_faults(active_faults))
         except (TypeError, ValueError, AttributeError):
             if raw_faults:
-                alerts.append(f"Fault: {raw_faults}")
+                alerts.append(f"{'Usterka' if polish else 'Fault'}: {raw_faults}")
 
         water_check = self.controller.value_for_property(PropertyRef(2, 54))
         try:
             if int(water_check) == 3:
-                alerts.append("Water system check failed")
+                alerts.append(
+                    "Kontrola instalacji wodnej nie powiodła się"
+                    if polish
+                    else "Water system check failed"
+                )
         except (TypeError, ValueError):
             pass
 
-        for label, ref in self._TEXT_REFS:
+        for labels, ref in self._TEXT_REFS:
             raw = self.controller.value_for_property(ref)
             if raw is None:
                 continue
             value = str(raw).strip()
             if value and value not in ("{}", "[]", "0"):
-                alerts.append(f"{label.capitalize()}: {value}")
+                alerts.append(f"{labels[1] if polish else labels[0]}: {value}")
         return alerts
 
     def _format_faults(self, faults: list[int]) -> str:

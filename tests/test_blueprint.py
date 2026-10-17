@@ -97,7 +97,7 @@ async def test_station_problem_after_one_minute(hass, notifications) -> None:
     assert len(notifications) == 1
     assert notifications[0].data["title"] == "Sprzątanie: Problem ze stacją"
     assert notifications[0].data["message"] == (
-        "Kody usterek: 210030\nSprawdź stację robota."
+        "Stacja robota Stefan: Kody usterek: 210030\nSprawdź stację robota."
     )
 
 
@@ -119,7 +119,7 @@ async def test_vacuum_error(hass, notifications) -> None:
     assert len(notifications) == 1
     assert notifications[0].data["title"] == "Sprzątanie: Błąd robota"
     assert notifications[0].data["message"] == (
-        "Robot zgłosił błąd. Kody usterek: 320004\nSprawdź robota i stację."
+        "Robot Stefan zgłosił błąd. Kody usterek: 320004\nSprawdź robota i stację."
     )
 
 
@@ -130,7 +130,7 @@ async def test_unavailable_robot_after_two_minutes(hass, notifications) -> None:
     assert len(notifications) == 1
     assert notifications[0].data["title"] == "Sprzątanie: Robot nie odpowiada"
     assert notifications[0].data["message"] == (
-        "Robot nie odpowiada od 2 minut.\n"
+        "Robot Stefan nie odpowiada od 2 minut.\n"
         "Sprawdź, czy robot i stacja mają zasilanie oraz dostęp do sieci."
     )
 
@@ -141,7 +141,7 @@ async def test_consumable_below_threshold(hass, notifications) -> None:
     assert len(notifications) == 1
     assert notifications[0].data["title"] == "Sprzątanie: Zużycie elementu"
     assert notifications[0].data["message"] == (
-        "Mopy: pozostało 18 % — około 12 godz. pracy.\n"
+        "Mopy robota Stefan: pozostało 18 % — około 12 godz. pracy.\n"
         "Wyczyść lub wymień element, a potem wyzeruj jego licznik."
     )
 
@@ -152,7 +152,7 @@ async def test_detergent_without_hours(hass, notifications) -> None:
     assert len(notifications) == 1
     assert notifications[0].data["title"] == "Sprzątanie: Mało detergentu"
     assert notifications[0].data["message"] == (
-        "Pozostało 14 % detergentu.\nUzupełnij detergent w stacji."
+        "Pozostało 14 % detergentu robota Stefan.\nUzupełnij detergent w stacji."
     )
 
 
@@ -164,12 +164,12 @@ async def test_english_texts(hass, notifications) -> None:
     assert [(n.data["title"], n.data["message"]) for n in notifications] == [
         (
             "Cleaning: Item wear",
-            "Mops: 18 % left — about 12 operating hours.\n"
+            "Mops of robot Stefan: 18 % left — about 12 operating hours.\n"
             "Clean or replace the item, then reset its counter.",
         ),
         (
             "Cleaning: Low detergent",
-            "14 % of detergent left.\nRefill the detergent in the station.",
+            "14 % of detergent left for robot Stefan.\nRefill the detergent in the station.",
         ),
     ]
 

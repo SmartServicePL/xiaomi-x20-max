@@ -7,8 +7,12 @@
   "Błąd robota", "Robot nie odpowiada", "Mało detergentu", "Zużycie
   elementu") and a message whose last line says what to do. Remaining hours
   are shown only when the sensor reports them.
-- The robot name is no longer in the title; notification actions can use the
-  new `x20_robot_name` variable. Blueprint input names are unchanged.
+- The robot name moved from the title into the message ("Robot Franek
+  reported an error."); notification actions can also use the new
+  `x20_robot_name` variable. Blueprint input names are unchanged.
+- Station alerts: with Home Assistant in Polish the labels of the station
+  problem are Polish too ("Kontrola instalacji wodnej nie powiodła się",
+  "Wynik akcji", "Komunikat", "Przypomnienie", "Stan stacji").
 
 ## 1.1.8 - 2026-10-17
 

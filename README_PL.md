@@ -148,8 +148,8 @@ progu, więc wartość, która jest już poniżej progu w chwili tworzenia
 automatyzacji, nie wyśle powiadomienia.
 
 Każde powiadomienie ma krótki tytuł (np. „Sprzątanie: Problem ze stacją”)
-i treść, której ostatnia linia mówi, co zrobić. Nazwy robota nie ma w tytule;
-akcja powiadomienia może użyć `x20_robot_name` (np. w tagu lub grupie) obok
+i treść z nazwą robota, której ostatnia linia mówi, co zrobić. Akcja
+powiadomienia może też użyć `x20_robot_name` (np. w tagu lub grupie) obok
 `x20_title` i `x20_message`.
 
 [Importuj blueprint](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FSmartServicePL%2Fxiaomi-x20-max%2Fblob%2Fmain%2Fblueprints%2Fautomation%2FSmartServicePL%2Fx20_max_maintenance.yaml)

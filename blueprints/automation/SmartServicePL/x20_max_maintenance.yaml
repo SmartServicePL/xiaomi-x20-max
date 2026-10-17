@@ -198,25 +198,29 @@ actions:
       detail: >-
         {% set h = remaining_hours %}
         {% set hours = h not in [none, '', 'None'] %}
+        {% set name = configured_robot_name %}
+        {% set problem = trigger.to_state.attributes.get('problem')
+           if trigger.to_state is not none else none %}
         {% if trigger.id == 'station' %}
-          {{ trigger.to_state.attributes.get('problem') or station_problem }}
+          {{ ('Stacja robota ' if pl else 'Station of robot ') ~ name ~ ': '
+             ~ (problem or station_problem) }}
         {% elif trigger.id == 'vacuum_error' %}
-          {{ ('Robot zgłosił błąd. ' if pl
-              else 'The robot reported an error. ') ~ station_problem }}
+          {{ ('Robot ' ~ name ~ ' zgłosił błąd. ' if pl
+              else 'Robot ' ~ name ~ ' reported an error. ') ~ station_problem }}
         {% elif trigger.id == 'unavailable' %}
-          {{ 'Robot nie odpowiada od 2 minut.' if pl
-             else 'The robot has not responded for 2 minutes.' }}
+          {{ 'Robot ' ~ name ~ (' nie odpowiada od 2 minut.' if pl
+             else ' has not responded for 2 minutes.') }}
         {% elif trigger.id == 'detergent' and pl %}
-          {{ 'Pozostało ' ~ percent ~ ' % detergentu'
+          {{ 'Pozostało ' ~ percent ~ ' % detergentu robota ' ~ name
              ~ ((' — około ' ~ h ~ ' godz. pracy') if hours else '') ~ '.' }}
         {% elif trigger.id == 'detergent' %}
-          {{ percent ~ ' % of detergent left'
+          {{ percent ~ ' % of detergent left for robot ' ~ name
              ~ ((' — about ' ~ h ~ ' operating hours') if hours else '') ~ '.' }}
         {% elif pl %}
-          {{ (item | capitalize) ~ ': pozostało ' ~ percent ~ ' %'
-             ~ ((' — około ' ~ h ~ ' godz. pracy') if hours else '') ~ '.' }}
+          {{ (item | capitalize) ~ ' robota ' ~ name ~ ': pozostało ' ~ percent
+             ~ ' %' ~ ((' — około ' ~ h ~ ' godz. pracy') if hours else '') ~ '.' }}
         {% else %}
-          {{ (item | capitalize) ~ ': ' ~ percent ~ ' % left'
+          {{ (item | capitalize) ~ ' of robot ' ~ name ~ ': ' ~ percent ~ ' % left'
              ~ ((' — about ' ~ h ~ ' operating hours') if hours else '') ~ '.' }}
         {% endif %}
       todo: >-

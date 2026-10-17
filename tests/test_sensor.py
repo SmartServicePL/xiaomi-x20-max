@@ -218,3 +218,25 @@ def test_every_known_fault_has_both_languages() -> None:
     }
     for english, polish in FAULT_DESCRIPTIONS.values():
         assert english and polish and english != polish
+
+
+async def test_station_alert_labels_follow_language(hass, cloud, loaded) -> None:
+    values = {
+        PropertyRef(2, 54): 3,
+        PropertyRef(2, 72): "Wymień wodę",
+        PropertyRef(20, 3): "busy",
+    }
+    hass.config.language = "pl"
+    await refresh(hass, cloud, loaded, values)
+    assert hass.states.get(ALERTS).attributes["alerts"] == [
+        "Kontrola instalacji wodnej nie powiodła się",
+        "Komunikat: Wymień wodę",
+        "Stan stacji: busy",
+    ]
+    hass.config.language = "en"
+    await refresh(hass, cloud, loaded, {})
+    assert hass.states.get(ALERTS).attributes["alerts"] == [
+        "Water system check failed",
+        "Message: Wymień wodę",
+        "Station status: busy",
+    ]
