@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.8 - 2026-10-17
+
+- Fault `210014` now has a text, as shown by the Xiaomi Home app on the
+  robot: "The mop pad holder has come off the robot. Attach the mop pad
+  holder to continue" ("Uchwyt wkładu myjącego odpadł od odkurzacza
+  automatycznego. Zamontuj uchwyt wkładu myjącego, aby kontynuować").
+
 ## 1.1.7 - 2026-10-16
 
 - `fault_code_description` has a value only while the fault is active, that

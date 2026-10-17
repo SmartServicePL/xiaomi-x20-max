@@ -48,8 +48,8 @@ async def test_fault_description_follows_language(hass, cloud, loaded) -> None:
 
 
 async def test_unknown_fault_shows_the_code(hass, cloud, loaded) -> None:
-    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[210014]}'})
-    assert hass.states.get(FAULTS).state == "210014"
+    await refresh(hass, cloud, loaded, {PropertyRef(2, 66): '{"fault":[210050]}'})
+    assert hass.states.get(FAULTS).state == "210050"
 
 
 async def test_malformed_faults_do_not_break_the_sensor(hass, cloud, loaded) -> None:
@@ -158,6 +158,8 @@ async def test_fault_code_from_2_3_is_exposed(hass, cloud, loaded) -> None:
         ("pl", 210030, "Poziom wody w zbiorniku na czystą wodę jest niski"),
         ("en", 320002, "Brush error"),
         ("pl", 320004, "Zablokowane koło jezdne"),
+        ("pl", 210014, "Uchwyt wkładu myjącego odpadł od odkurzacza automatycznego. "
+         "Zamontuj uchwyt wkładu myjącego, aby kontynuować"),
         ("en", 100008, "100008"),  # sprzeczne źródła: tylko numer
         ("en", 0, None),
     ],
@@ -212,7 +214,7 @@ def test_every_known_fault_has_both_languages() -> None:
     from custom_components.xiaomi_x20_max.const import FAULT_DESCRIPTIONS
 
     assert set(FAULT_DESCRIPTIONS) == {
-        100010, 210004, 210009, 210030, 320002, 320004, 320008, 320013
+        100010, 210004, 210009, 210014, 210030, 320002, 320004, 320008, 320013
     }
     for english, polish in FAULT_DESCRIPTIONS.values():
         assert english and polish and english != polish

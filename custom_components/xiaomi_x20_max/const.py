@@ -455,8 +455,8 @@ DOCKED_WHEN_CHARGING = frozenset({1, 2, 3, 9})
 
 # Fault codes (MIoT 2.3 and the 2.66 list) as (English, Polish) texts. Only
 # codes with a known meaning are listed; any other code is shown as a number.
-# - 210030, 320004 and 320008: shown by the Xiaomi Home app on the robot
-#   itself.
+# - 210014, 210030, 320004 and 320008: shown by the Xiaomi Home app on the
+#   robot itself.
 # - 100010, 210004, 210009, 320002 and 320013: meaning taken from the
 #   fault names in voska/xiaomi-vacuum (custom_components/xiaomi_vacuum/xiaomi/
 #   types.py), a fork of Tasshack/dreame-vacuum, MIT License,
@@ -470,6 +470,12 @@ FAULT_DESCRIPTIONS: dict[int, tuple[str, str]] = {
     210009: (
         "The robot could not return to the station",
         "Robot nie wrócił do stacji",
+    ),
+    210014: (
+        "The mop pad holder has come off the robot. Attach the mop pad holder "
+        "to continue",
+        "Uchwyt wkładu myjącego odpadł od odkurzacza automatycznego. Zamontuj "
+        "uchwyt wkładu myjącego, aby kontynuować",
     ),
     210030: (
         "Clean water tank level is low",
